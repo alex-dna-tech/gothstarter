@@ -2,6 +2,7 @@ package main
 
 import (
 	"gothstarter/handlers"
+	"gothstarter/utils"
 	"log"
 	"log/slog"
 	"net/http"
@@ -18,8 +19,7 @@ func main() {
 	router := chi.NewMux()
 
 	router.Handle("/*", public())
-	router.Get("/", handlers.Make(handlers.HandleHome))
-	router.Get("/login", handlers.Make(handlers.HandleLoginIndex))
+	router.Get("/", utils.Make(handlers.HandleHome))
 
 	listenAddr := os.Getenv("LISTEN_ADDR")
 	slog.Info("HTTP server started", "listenAddr", listenAddr)
