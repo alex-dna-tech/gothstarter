@@ -1,2 +1,6 @@
 .env
 bin
+gothbin
+gothbin.exe
+tmp/
+views/**/*.txt

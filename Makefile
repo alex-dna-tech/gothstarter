@@ -1,54 +1,94 @@
-run: build
-	@./bin/app
+NAME = gothbin
+BUILD_JS = npx esbuild assets/main.ts --bundle --outdir=public/
+BUILD_CSS = npx tailwindcss -i assets/main.css -o public/main.css
 
-build:
-	@go build -o bin/app .
+GIT_COMMIT = $(shell git rev-parse --short HEAD)
+GIT_TAG = $(shell git describe --abbrev=0 --tags --always --match "v*")
+GIT_IMPORT = alex-dna-tech/gothstarter
+BUILD_DATE = $(shell date +%s)
+LDFLAGS = -X $(GIT_IMPORT).BuildDate=$(BUILD_DATE) -X $(GIT_IMPORT).GitCommit=$(GIT_COMMIT) -X $(GIT_IMPORT).GitTag=$(GIT_TAG)
 
+GOPATH = $(shell go env GOPATH)
 
-css:
-	tailwindcss -i views/css/app.css -o public/styles.css --watch   
+.DEFAULT_GOAL := $(NAME)
 
+# Production
+public/main.js:
+	$(BUILD_JS) --minify
 
+public/main.css:
+		$(BUILD_CSS)
 
+$(NAME): public/main.js public/main.css
+	CGO_ENABLED=0 go build -ldflags "-s -w ${LDFLAGS}" -o $(NAME) cmd/goth/main.go
 
-# https://github.com/pressly/goose
-migrate: build-go-goose
-	bin/Goose up
+.PHONY: clean
+clean:
+	rm -f $(NAME) public/*.css public/*.js
 
-status: build-go-goose
-	bin/Goose status
+# Development
+.PHONY: tidy
+tidy:
+	go mod tidy
 
-add-sql-migration: build-go-goose
-	bin/Goose create $(FILE_NAME) sql
+.PHONY: vet
+vet:
+	go vet ./...
 
-add-go-migration: build-go-goose
-	bin/Goose create $(FILE_NAME) go
+.PHONY: test
+test: vet
+	go test -v -race ./...
 
-reset: build-go-goose
-	bin/Goose reset
+.PHONY: dev
+dev:
+	make -j 5 dev-templ dev-air dev-reload dev-js dev-css
 
-rollback: build-go-goose
-	bin/Goose down
+.PHONY: dev-air
+dev-air: $(GOPATH)/bin/air
+	@ echo "Build go cmd"
+	air \
+  --build.cmd "go build -o ./tmp/main cmd/goth/main.go" \
+  --build.bin "./tmp/main --dev" \
+  --build.delay "100" \
+  --build.exclude_regex ".*_test.go,.*_templ.go" \
+  --build.exclude_dir "assets,tmp,vendor" \
+  --build.include_ext "go,templ"
 
-build-go-goose:
-	go build -o bin/Goose cmd/Goose/*.go
+$(GOPATH)/bin/air:
+	go install github.com/cosmtrek/air@latest
 
+.PHONY: dev-templ
+dev-templ: $(GOPATH)/bin/templ
+	@ echo "Build template"
+	templ generate --watch --proxy="http://localhost:3000" --open-browser=false
 
+$(GOPATH)/bin/templ:
+	go install github.com/a-h/templ/cmd/templ@latest
 
-start-db:
-	docker-compose up -d
+.PHONY: dev-css
+dev-css:
+	@ echo "Build css"
+	$(BUILD_CSS) --watch
 
-stop-db:
-	docker-compose down
+.PHONY: dev-js
+dev-js:
+	@ echo "Build js"
+	$(BUILD_JS) --watch
 
+.PHONY: dev-reload
+dev-reload: $(GOPATH)/bin/air
+	@ echo "Watch public folder"
+	air \
+  --build.cmd "templ generate --notify-proxy" \
+  --build.bin "true" \
+  --build.delay "100" \
+  --build.exclude_dir "" \
+  --build.include_dir "public" \
+  --build.include_ext "js,css"
 
+.PHONY: lint
+lint: $(GOPATH)/bin/golangci-lint
+	golangci-lint run ./...
 
-air:
-	air -c .air.toml
-
-templ:
-	templ generate --watch
-
-# npm i -g tailwindcss@3.4.3
-css:
-	tailwindcss -i css/app.css -o public/styles.css --watch   
+$(GOPATH)/bin/golangci-lint:
+	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest

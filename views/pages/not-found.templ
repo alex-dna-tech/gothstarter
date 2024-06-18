@@ -1,0 +1,16 @@
+package pages
+
+import "alex-dna-tech/goth/views/layouts"
+
+templ NotFound(title string) {
+	@layouts.Base(title) {
+		<h1>Oops!</h1>
+		<h2>404 Not Found</h2>
+		<p>
+			Sorry, an error has occured, Requested page not found!
+		</p>
+	}
+}
+
+templ RateLimit() {
+}

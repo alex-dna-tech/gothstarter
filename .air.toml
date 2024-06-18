@@ -2,13 +2,13 @@ root = "."
 tmp_dir = "tmp"
 
 [build]
-  bin = "./tmp/main"
-  cmd = "go build -tags dev -o ./tmp/main ."
+  bin = "./tmp/main --dev"
+  cmd = "go build -o ./tmp/main cmd/goth/main.go"
 
-  delay = 20
+  delay = 100
   exclude_dir = ["assets", "tmp", "vendor"]
   exclude_file = []
-  exclude_regex = [".*_templ.go"]
+  exclude_regex = [".*_test.go", ".*_templ.go"]
   exclude_unchanged = false
   follow_symlink = false
   full_bin = ""
