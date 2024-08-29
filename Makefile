@@ -1,5 +1,5 @@
 NAME = gothbin
-BUILD_JS = npx esbuild assets/main.ts --bundle --outdir=public/
+BUILD_JS = esbuild assets/main.ts --bundle --outdir=public/
 BUILD_CSS = npx tailwindcss -i assets/main.css -o public/main.css
 
 GIT_COMMIT = $(shell git rev-parse --short HEAD)
@@ -12,8 +12,8 @@ GOPATH = $(shell go env GOPATH)
 
 .DEFAULT_GOAL := $(NAME)
 
-# Production
-public/main.js:
+# Build
+public/main.js: $(GOPATH)/bin/esbuild
 	$(BUILD_JS) --minify
 
 public/main.css:
@@ -24,7 +24,7 @@ $(NAME): public/main.js public/main.css
 
 .PHONY: clean
 clean:
-	rm -f $(NAME) public/*.css public/*.js
+	rm -rf tmp/ $(NAME) public/main.css public/main.js
 
 # Development
 .PHONY: tidy
@@ -73,7 +73,8 @@ dev-css:
 .PHONY: dev-js
 dev-js:
 	@ echo "Build js"
-	$(BUILD_JS) --watch
+	$(BUILD_JS) --watch --sourcemap=inline
+
 
 .PHONY: dev-reload
 dev-reload: $(GOPATH)/bin/air
@@ -92,3 +93,6 @@ lint: $(GOPATH)/bin/golangci-lint
 
 $(GOPATH)/bin/golangci-lint:
 	go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+$(GOPATH)/bin/esbuild:
+	go install github.com/evanw/esbuild/...@latest
+
