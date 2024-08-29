@@ -5,11 +5,11 @@ go 1.22.0
 require (
 	github.com/a-h/templ v0.2.771
 	github.com/gofiber/fiber/v2 v2.52.5
+	github.com/mattn/go-sqlite3 v1.14.22
 )
 
 require (
 	github.com/andybalholm/brotli v1.1.0 // indirect
-	github.com/golang-jwt/jwt/v5 v5.2.1 // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.17.9 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
@@ -19,6 +19,5 @@ require (
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.55.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
-	golang.org/x/crypto v0.26.0 // indirect
 	golang.org/x/sys v0.24.0 // indirect
 )

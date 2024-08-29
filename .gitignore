@@ -2,5 +2,6 @@
 bin
 gothbin
 gothbin.exe
+sqlite.db
 tmp/
 views/**/*.txt
