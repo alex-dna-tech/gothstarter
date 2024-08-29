@@ -33,7 +33,7 @@ func Render(c *fiber.Ctx, component templ.Component, options ...func(*templ.Comp
 	}
 
 	if strings.HasPrefix(c.App().Config().AppName, "DEV") {
-		c.Request().Header.Add("Cache-Control", "no-cache")
+		c.Request().Header.Add("Cache-Control", "no-store")
 	}
 
 	return adaptor.HTTPHandler(componentHandler)(c)

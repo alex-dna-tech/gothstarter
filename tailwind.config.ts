@@ -2,7 +2,7 @@ import type { Config } from "tailwindcss";
 import daisyui from "daisyui";
 
 export default {
-  content: ["./**/*.html", "./**/*.templ", "./**/*.go"],
+  content: ["./public/**/*.html", "./views/**/*.templ"],
   theme: {
     extend: {},
   },
