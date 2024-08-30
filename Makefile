@@ -2,11 +2,12 @@ NAME = gothbin
 BUILD_JS = esbuild assets/main.ts --bundle --outdir=public/
 BUILD_CSS = npx tailwindcss -i assets/main.css -o public/main.css
 
-DB_MIGRATIONS = db/migrations
 DB_SQLITE3 = sqlite3://sqlite.db
 DB_POSTGRES = postgresql://user:password@localhost:5432/fiber_demo?sslmode=disable
+
 DB = $(DB_SQLITE3)
 DB_ENGINE = $(word 1,$(subst :, ,$(DB))) 
+DB_MIGRATIONS = db/$(DB_ENGINE)/migrations
 
 GIT_COMMIT = $(shell git rev-parse --short HEAD)
 GIT_TAG = $(shell git describe --abbrev=0 --tags --always --match "v*")

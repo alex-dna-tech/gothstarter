@@ -6,6 +6,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"time"
 
 	"alex-dna-tech/goth/handlers"
 
@@ -39,9 +40,10 @@ func main() {
 	app.Use(frec.New(), helmet.New(), flog.New())
 
 	if *dev {
-		app.Static("/public", "./public")
+		app.Static("/public", "./public", fiber.Static{
+			CacheDuration: 1 * time.Nanosecond,
+		})
 	} else {
-
 		sub, err := fs.Sub(embedDirStatic, "public")
 		if err != nil {
 			panic(err)
@@ -52,6 +54,7 @@ func main() {
 			Browse: true,
 		}))
 	}
+
 	handlers.Setup(app, dev)
 
 	log.Println("Server listening on port: " + *port)
