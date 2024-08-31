@@ -36,11 +36,14 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.deleteUserStmt, err = db.PrepareContext(ctx, deleteUser); err != nil {
 		return nil, fmt.Errorf("error preparing query DeleteUser: %w", err)
 	}
-	if q.getProductStmt, err = db.PrepareContext(ctx, getProduct); err != nil {
-		return nil, fmt.Errorf("error preparing query GetProduct: %w", err)
+	if q.getProductByIDStmt, err = db.PrepareContext(ctx, getProductByID); err != nil {
+		return nil, fmt.Errorf("error preparing query GetProductByID: %w", err)
 	}
-	if q.getUserStmt, err = db.PrepareContext(ctx, getUser); err != nil {
-		return nil, fmt.Errorf("error preparing query GetUser: %w", err)
+	if q.getProductByTitleStmt, err = db.PrepareContext(ctx, getProductByTitle); err != nil {
+		return nil, fmt.Errorf("error preparing query GetProductByTitle: %w", err)
+	}
+	if q.getUserByIDStmt, err = db.PrepareContext(ctx, getUserByID); err != nil {
+		return nil, fmt.Errorf("error preparing query GetUserByID: %w", err)
 	}
 	if q.listProductsStmt, err = db.PrepareContext(ctx, listProducts); err != nil {
 		return nil, fmt.Errorf("error preparing query ListProducts: %w", err)
@@ -79,14 +82,19 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing deleteUserStmt: %w", cerr)
 		}
 	}
-	if q.getProductStmt != nil {
-		if cerr := q.getProductStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getProductStmt: %w", cerr)
+	if q.getProductByIDStmt != nil {
+		if cerr := q.getProductByIDStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getProductByIDStmt: %w", cerr)
 		}
 	}
-	if q.getUserStmt != nil {
-		if cerr := q.getUserStmt.Close(); cerr != nil {
-			err = fmt.Errorf("error closing getUserStmt: %w", cerr)
+	if q.getProductByTitleStmt != nil {
+		if cerr := q.getProductByTitleStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getProductByTitleStmt: %w", cerr)
+		}
+	}
+	if q.getUserByIDStmt != nil {
+		if cerr := q.getUserByIDStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getUserByIDStmt: %w", cerr)
 		}
 	}
 	if q.listProductsStmt != nil {
@@ -146,33 +154,35 @@ func (q *Queries) queryRow(ctx context.Context, stmt *sql.Stmt, query string, ar
 }
 
 type Queries struct {
-	db                DBTX
-	tx                *sql.Tx
-	createProductStmt *sql.Stmt
-	createUserStmt    *sql.Stmt
-	deleteProductStmt *sql.Stmt
-	deleteUserStmt    *sql.Stmt
-	getProductStmt    *sql.Stmt
-	getUserStmt       *sql.Stmt
-	listProductsStmt  *sql.Stmt
-	listUsersStmt     *sql.Stmt
-	updateProductStmt *sql.Stmt
-	updateUserStmt    *sql.Stmt
+	db                    DBTX
+	tx                    *sql.Tx
+	createProductStmt     *sql.Stmt
+	createUserStmt        *sql.Stmt
+	deleteProductStmt     *sql.Stmt
+	deleteUserStmt        *sql.Stmt
+	getProductByIDStmt    *sql.Stmt
+	getProductByTitleStmt *sql.Stmt
+	getUserByIDStmt       *sql.Stmt
+	listProductsStmt      *sql.Stmt
+	listUsersStmt         *sql.Stmt
+	updateProductStmt     *sql.Stmt
+	updateUserStmt        *sql.Stmt
 }
 
 func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 	return &Queries{
-		db:                tx,
-		tx:                tx,
-		createProductStmt: q.createProductStmt,
-		createUserStmt:    q.createUserStmt,
-		deleteProductStmt: q.deleteProductStmt,
-		deleteUserStmt:    q.deleteUserStmt,
-		getProductStmt:    q.getProductStmt,
-		getUserStmt:       q.getUserStmt,
-		listProductsStmt:  q.listProductsStmt,
-		listUsersStmt:     q.listUsersStmt,
-		updateProductStmt: q.updateProductStmt,
-		updateUserStmt:    q.updateUserStmt,
+		db:                    tx,
+		tx:                    tx,
+		createProductStmt:     q.createProductStmt,
+		createUserStmt:        q.createUserStmt,
+		deleteProductStmt:     q.deleteProductStmt,
+		deleteUserStmt:        q.deleteUserStmt,
+		getProductByIDStmt:    q.getProductByIDStmt,
+		getProductByTitleStmt: q.getProductByTitleStmt,
+		getUserByIDStmt:       q.getUserByIDStmt,
+		listProductsStmt:      q.listProductsStmt,
+		listUsersStmt:         q.listUsersStmt,
+		updateProductStmt:     q.updateProductStmt,
+		updateUserStmt:        q.updateUserStmt,
 	}
 }

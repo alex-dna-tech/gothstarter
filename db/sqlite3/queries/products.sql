@@ -1,11 +1,15 @@
 -- products
--- name: GetProduct :one
+-- name: GetProductByID :one
 SELECT * FROM products
 WHERE id = ? LIMIT 1;
 
+-- name: GetProductByTitle :many
+SELECT * FROM products
+WHERE title  LIKE ?;
+
 -- name: ListProducts :many
 SELECT * FROM products
-ORDER BY productame;
+ORDER BY title;
 
 -- name: CreateProduct :one
 INSERT INTO products (

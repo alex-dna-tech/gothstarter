@@ -48,14 +48,14 @@ func (q *Queries) DeleteProduct(ctx context.Context, id int64) error {
 	return err
 }
 
-const getProduct = `-- name: GetProduct :one
+const getProductByID = `-- name: GetProductByID :one
 SELECT title, description, amount, created_at, updated_at, id FROM products
 WHERE id = ? LIMIT 1
 `
 
 // products
-func (q *Queries) GetProduct(ctx context.Context, id int64) (Product, error) {
-	row := q.queryRow(ctx, q.getProductStmt, getProduct, id)
+func (q *Queries) GetProductByID(ctx context.Context, id int64) (Product, error) {
+	row := q.queryRow(ctx, q.getProductByIDStmt, getProductByID, id)
 	var i Product
 	err := row.Scan(
 		&i.Title,
@@ -68,9 +68,44 @@ func (q *Queries) GetProduct(ctx context.Context, id int64) (Product, error) {
 	return i, err
 }
 
+const getProductByTitle = `-- name: GetProductByTitle :many
+SELECT title, description, amount, created_at, updated_at, id FROM products
+WHERE title  LIKE ?
+`
+
+func (q *Queries) GetProductByTitle(ctx context.Context, title string) ([]Product, error) {
+	rows, err := q.query(ctx, q.getProductByTitleStmt, getProductByTitle, title)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Product
+	for rows.Next() {
+		var i Product
+		if err := rows.Scan(
+			&i.Title,
+			&i.Description,
+			&i.Amount,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.ID,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listProducts = `-- name: ListProducts :many
 SELECT title, description, amount, created_at, updated_at, id FROM products
-ORDER BY productame
+ORDER BY title
 `
 
 func (q *Queries) ListProducts(ctx context.Context) ([]Product, error) {

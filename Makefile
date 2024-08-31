@@ -31,7 +31,7 @@ $(NAME): public/main.js public/main.css
 
 .PHONY: clean
 clean:
-	rm -rf tmp/ $(NAME) public/main.css public/main.js
+	rm -rf tmp/ $(NAME) public/main.css public/main.js sqlite.db
 
 # Migrations
 .PHONY: migrate-create
@@ -56,7 +56,7 @@ dev:
 .PHONY: dev-sqlc
 dev-sqlc: $(GOPATH)/bin/sqlc
 	@ echo "Build sqlc"
-	@ air \
+	air \
   --build.cmd "sqlc generate" \
   --build.bin "true" \
   --build.delay "100" \
@@ -66,7 +66,7 @@ dev-sqlc: $(GOPATH)/bin/sqlc
 .PHONY: dev-air
 dev-air: $(GOPATH)/bin/air
 	@ echo "Build go binary"
-	@ air \
+	air \
   --build.cmd "go build -o ./tmp/main main.go" \
   --build.bin "./tmp/main --dev" \
   --build.delay "100" \
@@ -93,7 +93,7 @@ dev-templ: $(GOPATH)/bin/templ
 .PHONY: dev-reload
 dev-reload: $(GOPATH)/bin/air dev-templ
 	@ echo "Watch public folder and reload on chanege"
-	@ air \
+	air \
   --build.cmd "templ generate --notify-proxy" \
   --build.bin "true" \
   --build.delay "100" \

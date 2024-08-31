@@ -14,9 +14,10 @@ type Querier interface {
 	DeleteProduct(ctx context.Context, id int64) error
 	DeleteUser(ctx context.Context, id int64) error
 	// products
-	GetProduct(ctx context.Context, id int64) (Product, error)
+	GetProductByID(ctx context.Context, id int64) (Product, error)
+	GetProductByTitle(ctx context.Context, title string) ([]Product, error)
 	// users
-	GetUser(ctx context.Context, id int64) (User, error)
+	GetUserByID(ctx context.Context, id int64) (User, error)
 	ListProducts(ctx context.Context) ([]Product, error)
 	ListUsers(ctx context.Context) ([]User, error)
 	UpdateProduct(ctx context.Context, arg UpdateProductParams) error

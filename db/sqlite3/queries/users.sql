@@ -1,5 +1,5 @@
 -- users
--- name: GetUser :one
+-- name: GetUserByID :one
 SELECT * FROM users
 WHERE id = ? LIMIT 1;
 
