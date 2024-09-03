@@ -18,6 +18,14 @@ func Setup(app *fiber.App, dev *bool) {
 		return Render(c, pages.Index("Home Page"))
 	})
 
+	app.Get("/about", func(c *fiber.Ctx) error {
+		return Render(c, pages.About("About Page"))
+	})
+
+	app.Get("/contacts", func(c *fiber.Ctx) error {
+		return Render(c, pages.Contacts("Contacts Page"))
+	})
+
 	app.Get("/api", Hello)
 
 	/* Page Not Found Management */

@@ -28,6 +28,12 @@ templ Index(title string) {
 					proident,
 				</p>
 			</div>
+			<button class="w-full cursor-pointer rounded-lg border border-primary p-4 font-medium bg-primary text-white transition hover:bg-opacity-90 mt-8" hx-put="/messages">
+				Put To Messages Tailwind
+			</button>
+			<button class="btn btn-error mt-8" hx-put="/messages">
+				Put To Messages DaisyUI
+			</button>
 		</article>
 	}
 }

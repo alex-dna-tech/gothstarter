@@ -13,16 +13,21 @@ var menu = []Link{
 
 templ Navigation(title string) {
 	<div class="navbar bg-base-100 shadow-lg rounded-box border-base-300 mt-4 mb-8">
-		@Logo(title)
+		@LogoSVG(title)
 		@ThemeSwitch()
 		@DropDownMenu(menu)
 	</div>
 }
 
-templ Logo(title string) {
+templ LogoSVG(title string) {
 	<a class="w-12 h-12 ml-2 mr-auto" href="/">
 		@LogoIcon()
-		<!-- <img class="h-12" alt="{title}" src="/public/icon.png"/> -->
+	</a>
+}
+
+templ LogoImg(title string) {
+	<a class="w-12 h-12 ml-2 mr-auto" href="/">
+		<img class="h-12" alt="{title}" src="/public/icon.png"/>
 	</a>
 }
 
@@ -51,11 +56,8 @@ templ MoonIcon() {
 }
 
 templ ThemeSwitch() {
-	<label class="swap swap-rotate btn btn-ghost">
-		<!-- this hidden checkbox controls the state -->
-		<input type="checkbox" class="theme-controller" value="dark"/>
+	<label class="swap swap-rotate btn btn-ghost" data-act-class="swap-active" data-toggle-theme="dark">
 		@SunIcon()
-		<!-- moon icon -->
 		@MoonIcon()
 	</label>
 }
