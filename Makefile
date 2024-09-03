@@ -51,11 +51,11 @@ migrate-down: $(GOPATH)/bin/migrate
 .PHONY: dev
 dev:
 	@ echo "Run dev/watch processes on http://127.0.0.1:7331/, 'Ctrl+C' or 'killall make' to cancel"
-	make -j 6 dev-sqlc dev-templ dev-air dev-js dev-css dev-reload
+	make -j6 dev-sqlc dev-templ dev-air dev-js dev-css dev-reload
 
 .PHONY: dev-sqlc
 dev-sqlc: $(GOPATH)/bin/sqlc
-	@ echo "Build sqlc"
+	@ echo "-- Watch SQLC"
 	air \
   --build.cmd "sqlc generate" \
   --build.bin "true" \
@@ -65,40 +65,40 @@ dev-sqlc: $(GOPATH)/bin/sqlc
 
 .PHONY: dev-air
 dev-air: $(GOPATH)/bin/air
-	@ echo "Build go binary"
+	@ echo "-- Watch Go Binary"
 	air \
   --build.cmd "go build -o ./tmp/main main.go" \
   --build.bin "./tmp/main --dev" \
   --build.delay "100" \
-  --build.exclude_regex ".*_test.go,.*_templ.go" \
+  --build.exclude_regex ".*_test.go" \
   --build.include_dir "db,handlers,views" \
 	--build.include_file "main.go" \
-  --build.include_ext "go,templ"
+  --build.include_ext "go"
 
 .PHONY: dev-css
 dev-css:
-	@ echo "Build css"
+	@ echo "-- Watch CSS"
 	$(BUILD_CSS) --watch
 
 .PHONY: dev-js
 dev-js:
-	@ echo "Build js"
+	@ echo "-- Watch JS"
 	$(BUILD_JS) --watch --sourcemap=inline
 
 .PHONY: dev-templ
 dev-templ: $(GOPATH)/bin/templ
-	@ echo "Build template"
+	@ echo "-- Watch templ"
 	templ generate --watch --proxy="http://localhost:3000" --open-browser=false
 
 .PHONY: dev-reload
-dev-reload: $(GOPATH)/bin/air dev-templ
-	@ echo "Watch public folder and reload on chanege"
+dev-reload: $(GOPATH)/bin/air 
+	@ echo "-- Watch public folder and reload on change"
 	air \
-  --build.cmd "templ generate --notify-proxy" \
+  --build.cmd "sleep .5 && templ generate --notify-proxy" \
   --build.bin "true" \
   --build.delay "100" \
-  --build.include_dir "public" \
-  --build.include_ext "js,css,svg,webp,png,jpg,ico,woff,woff2"
+  --build.include_dir "handlers,public" \
+  --build.include_ext "go,js,css,svg,webp,png,jpg,ico,woff,woff2"
 
 # Test
 .PHONY: tidy
@@ -115,7 +115,7 @@ test: vet
 
 .PHONY: lint
 lint: $(GOPATH)/bin/golangci-lint
-	golangci-lint run ./...
+	golangci-lint -v run ./...
 
 # Dependencies install
 $(GOPATH)/bin/golangci-lint:
