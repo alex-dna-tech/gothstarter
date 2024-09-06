@@ -20,18 +20,21 @@ GOPATH = $(shell go env GOPATH)
 .DEFAULT_GOAL := $(NAME)
 
 # Build
-public/main.js: $(GOPATH)/bin/esbuild
-	$(BUILD_JS) --minify
-
-public/main.css:
-		$(BUILD_CSS)
-
 $(NAME): public/main.js public/main.css
 	CGO_ENABLED=0 go build -ldflags "-s -w ${LDFLAGS}" -o $(NAME) main.go
 
+node_modules/tailwindcss/package.json node_modules/htmx.org/package.json:
+	npm install
+
+public/main.js: $(GOPATH)/bin/esbuild node_modules/htmx.org/package.json
+	$(BUILD_JS) --minify
+
+public/main.css: node_modules/tailwindcss/package.json 
+		$(BUILD_CSS)
+
 .PHONY: clean
 clean:
-	rm -rf tmp/ $(NAME) public/main.css public/main.js sqlite.db
+	rm -rf tmp/ node_modules/ $(NAME) public/main.css public/main.js sqlite.db
 
 # Migrations
 .PHONY: migrate-create
@@ -76,12 +79,12 @@ dev-air: $(GOPATH)/bin/air
   --build.include_ext "go"
 
 .PHONY: dev-css
-dev-css:
+dev-css: node_modules/tailwindcss/package.json
 	@ echo "-- Watch CSS"
 	$(BUILD_CSS) --watch
 
 .PHONY: dev-js
-dev-js:
+dev-js: node_modules/htmx.org/package.json
 	@ echo "-- Watch JS"
 	$(BUILD_JS) --watch --sourcemap=inline
 

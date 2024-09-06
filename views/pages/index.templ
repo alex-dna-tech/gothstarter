@@ -22,16 +22,30 @@ templ Index(title string) {
 					reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
 					proident,
 				</p>
-				<p>
+				<p id="message">
 					quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in
 					reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non
 					proident,
 				</p>
 			</div>
-			<button class="w-full cursor-pointer rounded-lg border border-primary p-4 font-medium bg-primary text-white transition hover:bg-opacity-90 mt-8" hx-put="/messages">
+			<div class="my-8">
+				<form hx-post="/messages">
+					<input class="h-6 mr-8 p-4" type="text" name="message" placeholder="Enter A Message..."/>
+					<button class="btn btn-success">Post Your Message</button>
+				</form>
+			</div>
+			<button
+				class="w-full cursor-pointer rounded-lg border border-primary p-4 font-medium bg-primary text-white transition hover:bg-opacity-90 mt-8"
+				hx-put="/messages"
+				hx-target="h1"
+			>
 				Put To Messages Tailwind
 			</button>
-			<button class="btn btn-error mt-8" hx-put="/messages">
+			<button
+				class="btn btn-error mt-8"
+				hx-put="/messages"
+				hx-target="#message"
+			>
 				Put To Messages DaisyUI
 			</button>
 		</article>
