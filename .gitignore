@@ -2,6 +2,9 @@
 bin
 gothbin
 gothbin.exe
+public/main.css
+public/main.js
 sqlite.db
 tmp/
 views/**/*.txt
+views/**/*_templ.go
