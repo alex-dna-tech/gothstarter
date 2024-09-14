@@ -1,0 +1,9 @@
+.env
+bin
+gothbin
+gothbin.exe
+node_modules/
+public/main.css
+public/main.js
+sqlite.db
+tmp/

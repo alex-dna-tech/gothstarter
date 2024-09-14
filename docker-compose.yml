@@ -1,12 +1,33 @@
-version: '3.8'
-
 services:
+  goth:
+    container_name: goth
+    build: .
+    pid: "host" # Prefork enabled requires PID != 1
+    ports:
+      - "3000:3000"
+
+  mysql:
+    image: mariadb:latest
+    container_name: mysql
+    restart: unless-stopped
+    environment:
+      MARIADB_RANDOM_ROOT_PASSWORD: true
+      MYSQL_USER: admin
+      MYSQL_PASSWORD: admin
+      MYSQL_DATABASE: goth
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./tmp/mariadb:/var/lib/mysql
+
   postgres:
     image: postgres:latest
+    container_name: postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_DB: goth
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
+      POSTGRES_DB: goth
     ports:
       - "5432:5432"
     volumes:
