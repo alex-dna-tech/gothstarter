@@ -1,4 +1,4 @@
-FROM node:18-alpine as build
+FROM node:23-alpine as build
 RUN apk --no-cache add git make gcc g++ curl ca-certificates
 COPY --from=golang:1.23-alpine /usr/local/go /usr/local/go
 ENV GOPATH /go
