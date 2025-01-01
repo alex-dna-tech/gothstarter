@@ -3,7 +3,7 @@
 //   sqlc v1.23.0
 // source: users.sql
 
-package sqlite3_db
+package postgresql_db
 
 import (
 	"context"
@@ -13,7 +13,7 @@ const createUser = `-- name: CreateUser :one
 INSERT INTO users (
   email, username, password
 ) VALUES (
-  ?, ?, ?
+  $1, $2, $3
 )
 RETURNING email, username, password, created_at, updated_at, id
 `
@@ -40,7 +40,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 
 const deleteUser = `-- name: DeleteUser :exec
 DELETE FROM users
-WHERE id = ?
+WHERE id = $1
 `
 
 func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
@@ -50,7 +50,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) error {
 
 const getUserByID = `-- name: GetUserByID :one
 SELECT email, username, password, created_at, updated_at, id FROM users
-WHERE id = ? LIMIT 1
+WHERE id = $1 LIMIT 1
 `
 
 // users
@@ -106,10 +106,10 @@ func (q *Queries) ListUsers(ctx context.Context) ([]User, error) {
 const updateUser = `-- name: UpdateUser :exec
 UPDATE users
 SET 
-email = ?,
-username = ?,
-password = ?
-WHERE id = ?
+email = $1,
+username = $2,
+password = $3
+WHERE id = $4
 `
 
 type UpdateUserParams struct {

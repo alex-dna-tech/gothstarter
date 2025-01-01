@@ -3,7 +3,7 @@
 //   sqlc v1.23.0
 // source: products.sql
 
-package sqlite3_db
+package postgresql_db
 
 import (
 	"context"
@@ -13,7 +13,7 @@ const createProduct = `-- name: CreateProduct :one
 INSERT INTO products (
   title, description, amount
 ) VALUES (
-  ?, ?, ?
+  $1, $2, $3
 )
 RETURNING title, description, amount, created_at, updated_at, id
 `
@@ -40,7 +40,7 @@ func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (P
 
 const deleteProduct = `-- name: DeleteProduct :exec
 DELETE FROM products
-WHERE id = ?
+WHERE id = $1
 `
 
 func (q *Queries) DeleteProduct(ctx context.Context, id int64) error {
@@ -50,7 +50,7 @@ func (q *Queries) DeleteProduct(ctx context.Context, id int64) error {
 
 const getProductByID = `-- name: GetProductByID :one
 SELECT title, description, amount, created_at, updated_at, id FROM products
-WHERE id = ? LIMIT 1
+WHERE id = $1 LIMIT 1
 `
 
 // products
@@ -70,7 +70,7 @@ func (q *Queries) GetProductByID(ctx context.Context, id int64) (Product, error)
 
 const getProductByTitle = `-- name: GetProductByTitle :many
 SELECT title, description, amount, created_at, updated_at, id FROM products
-WHERE title  LIKE ?
+WHERE title  LIKE $1
 `
 
 func (q *Queries) GetProductByTitle(ctx context.Context, title string) ([]Product, error) {
@@ -141,10 +141,10 @@ func (q *Queries) ListProducts(ctx context.Context) ([]Product, error) {
 const updateProduct = `-- name: UpdateProduct :exec
 UPDATE products
 SET 
-title = ?,
-description = ?,
-amount = ?
-WHERE id = ?
+title = $1,
+description = $2,
+amount = $3
+WHERE id = $4
 `
 
 type UpdateProductParams struct {

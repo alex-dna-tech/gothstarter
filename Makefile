@@ -1,27 +1,31 @@
-NAME = gothbin
+# Load default values
+NAME ?= gothbin
+NODE_ENV ?= prod
+
 BUILD_JS = esbuild assets/main.ts --bundle --outdir=public/
 BUILD_CSS = npx tailwindcss -i assets/main.css -o public/main.css
 
-DB_SQLITE3 = sqlite3://sqlite.db
-DB_POSTGRES = postgresql://user:password@localhost:5432/fiber_demo?sslmode=disable
-
-DB = $(DB_SQLITE3)
-DB_ENGINE = $(word 1,$(subst :, ,$(DB))) 
+# DB vars
+DB_STRING ?= sqlite3://$(NAME)-$(NODE_ENV).db
+DB = $(DB_STRING)
+DB_ENGINE = $(strip $(word 1, $(subst :, ,$(DB_STRING))))
 DB_MIGRATIONS = db/$(DB_ENGINE)/migrations
 
+# Build vars
 GIT_COMMIT = $(shell git rev-parse --short HEAD)
 GIT_TAG = $(shell git describe --abbrev=0 --tags --always --match "v*")
 GIT_IMPORT = alex-dna-tech/gothstarter
 BUILD_DATE = $(shell date +%s)
-LDFLAGS = -X $(GIT_IMPORT).BuildDate=$(BUILD_DATE) -X $(GIT_IMPORT).GitCommit=$(GIT_COMMIT) -X $(GIT_IMPORT).GitTag=$(GIT_TAG)
+LDFLAGS = -ldflags "-s -w -X $(GIT_IMPORT).BuildDate=$(BUILD_DATE) -X $(GIT_IMPORT).GitCommit=$(GIT_COMMIT) -X $(GIT_IMPORT).GitTag=$(GIT_TAG)"
 
 GOPATH = $(shell go env GOPATH)
+GOTAGS = -tags "$(NODE_ENV) $(DB_ENGINE)"
 
 .DEFAULT_GOAL := $(NAME)
 
 # Build
 $(NAME): public/main.js public/main.css
-	CGO_ENABLED=0 go build -ldflags "-s -w ${LDFLAGS}" -o $(NAME) main.go
+	CGO_ENABLED=0 go build $(GOTAGS) $(LDFLAGS) -trimpath -o $(NAME) .
 
 node_modules/tailwindcss/package.json node_modules/htmx.org/package.json:
 	npm install
@@ -30,7 +34,7 @@ public/main.js: $(GOPATH)/bin/esbuild node_modules/htmx.org/package.json
 	$(BUILD_JS) --minify
 
 public/main.css: node_modules/tailwindcss/package.json 
-		$(BUILD_CSS)
+	$(BUILD_CSS)
 
 .PHONY: clean
 clean:
@@ -40,24 +44,24 @@ clean:
 .PHONY: migrate-create
 migrate-create: $(GOPATH)/bin/migrate
 	@ read -p "Create DB table: " T; \
-	migrate create -ext "sql" -dir $(DB_MIGRATIONS)/$(DB_ENGINE) -seq "create_"$$T"_table"
+	migrate create -ext "sql" -dir $(DB_MIGRATIONS) -seq "create_"$$T"_table"
 
 .PHONY: migrate-up
 migrate-up: $(GOPATH)/bin/migrate
-	migrate -database $(DB) -path $(DB_MIGRATIONS)/$(DB_ENGINE) -verbose up
+	migrate -database $(DB) -path $(DB_MIGRATIONS) -verbose up
 
 .PHONY: migrate-down
 migrate-down: $(GOPATH)/bin/migrate
-	migrate -database $(DB) -path $(DB_MIGRATIONS)/$(DB_ENGINE) -verbose down
+	migrate -database $(DB) -path $(DB_MIGRATIONS) -verbose down
 
 # Development
 .PHONY: dev
 dev:
 	@ echo "Run dev/watch processes on http://127.0.0.1:7331/, 'Ctrl+C' or 'killall make' to cancel"
-	make -j6 dev-sqlc dev-templ dev-air dev-js dev-css dev-reload
+	DB_STRING=$(DB_STRING) make -j6 dev-sqlc dev-templ dev-go dev-js dev-css dev-reload
 
 .PHONY: dev-sqlc
-dev-sqlc: $(GOPATH)/bin/sqlc
+dev-sqlc: $(GOPATH)/bin/sqlc $(GOPATH)/bin/air
 	@ echo "-- Watch SQLC"
 	air \
   --build.cmd "sqlc generate" \
@@ -66,17 +70,17 @@ dev-sqlc: $(GOPATH)/bin/sqlc
 	--build.include_dir "db"\
   --build.include_ext "sql"
 
-.PHONY: dev-air
-dev-air: $(GOPATH)/bin/air
-	@ echo "-- Watch Go Binary"
+.PHONY: dev-go
+dev-go: $(GOPATH)/bin/air
+	@ echo "-- Watch Go Binary" 
 	air \
-  --build.cmd "go build -o ./tmp/main main.go" \
-  --build.bin "./tmp/main --dev" \
+  --build.cmd "go build -tags \"dev $(DB_ENGINE)\" -o ./tmp/main ." \
+  --build.full_bin "$(DB_STRING) ./tmp/main" \
   --build.delay "100" \
-  --build.exclude_regex ".*_test.go" \
+  --build.exclude_regex "_test\\.go" \
   --build.include_dir "db,handlers,views" \
-	--build.include_file "main.go" \
-  --build.include_ext "go"
+  --build.include_ext "go" \
+	--build.include_file "main.go,dev.go,prod.go,db-mysql.go,db-postgres.go,db-sqlite.go"
 
 .PHONY: dev-css
 dev-css: node_modules/tailwindcss/package.json
@@ -84,7 +88,7 @@ dev-css: node_modules/tailwindcss/package.json
 	$(BUILD_CSS) --watch
 
 .PHONY: dev-js
-dev-js: node_modules/htmx.org/package.json
+dev-js: node_modules/htmx.org/package.json $(GOPATH)/bin/esbuild
 	@ echo "-- Watch JS"
 	$(BUILD_JS) --watch --sourcemap=inline
 
@@ -138,4 +142,9 @@ $(GOPATH)/bin/esbuild:
 
 $(GOPATH)/bin/migrate:
 	go install -tags 'sqlite3,postgres,mysql' github.com/golang-migrate/migrate/v4/cmd/migrate@latest
+
+.PHONY: upgrade-dep
+upgrade-dep:
+	rm $(GOPATH)/bin/{golangci-lint,sqlc,air,templ,esbuild,migrate} 
+	make $(GOPATH)/bin/{golangci-lint,sqlc,air,templ,esbuild,migrate} 
 

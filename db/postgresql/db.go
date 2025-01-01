@@ -2,7 +2,7 @@
 // versions:
 //   sqlc v1.23.0
 
-package sqlite3_db
+package postgresql_db
 
 import (
 	"context"

@@ -1,12 +1,22 @@
 version: "2"
 sql:
+  - engine: "postgresql"
+    queries: "db/postgresql/queries"
+    schema: "db/postgresql/migrations"
+    gen:
+      go:
+        package: "postgresql_db"
+        out: "db/postgresql"
+        emit_json_tags: true
+        # emit_interface: true
+        # emit_prepared_queries: true
   - engine: "sqlite"
     queries: "db/sqlite3/queries"
     schema: "db/sqlite3/migrations"
     gen:
       go:
-        package: "db"
+        package: "sqlite3_db"
         out: "db/sqlite3"
-        emit_interface: true
         emit_json_tags: true
-        emit_prepared_queries: true
+        # emit_interface: true
+        # emit_prepared_queries: true

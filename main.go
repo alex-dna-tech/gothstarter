@@ -1,62 +1,71 @@
 package main
 
 import (
-	"embed"
+	"errors"
 	"flag"
-	"io/fs"
 	"log"
-	"net/http"
-	"time"
+	"os"
+	"strings"
 
 	"alex-dna-tech/goth/handlers"
 
-	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/filesystem"
-	"github.com/gofiber/fiber/v2/middleware/helmet"
-
+	helmet "github.com/gofiber/fiber/v2/middleware/helmet"
 	flog "github.com/gofiber/fiber/v2/middleware/logger"
 	frec "github.com/gofiber/fiber/v2/middleware/recover"
 )
 
 var (
 	port = flag.String("port", ":3000", "Port to listen on")
-	dev  = flag.Bool("dev", false, "Enable Development Mode")
 )
 
-//go:embed public
-var embedDirStatic embed.FS
-
+// Build required tags argument, by default 'go build -tags "prod sqlite3" .'
 func main() {
 	flag.Parse()
-	conf := fiber.Config{
-		Prefork: !*dev,
-	}
-	if *dev {
-		conf.AppName = "DEV-GOTH"
+
+	s := os.Getenv("DB_STRING")
+	dbs, err := parseDBString(s)
+	if err != nil {
+		log.Fatalf("'DB_STRING' environment variable required, error: %v", err)
 	}
 
-	app := fiber.New(conf)
+	initDB(dbs[1])
 
+	conf := initConf()
+	conf.AppName = strings.ToUpper(ENV+"-"+DB_TYPE) + "-GOTH"
+
+	app := initApp(conf)
 	app.Use(frec.New(), helmet.New(), flog.New())
 
-	if *dev {
-		app.Static("/public", "./public", fiber.Static{
-			CacheDuration: 1 * time.Nanosecond,
-		})
-	} else {
-		sub, err := fs.Sub(embedDirStatic, "public")
-		if err != nil {
-			panic(err)
-		}
-
-		app.Use("/public", filesystem.New(filesystem.Config{
-			Root:   http.FS(sub),
-			Browse: true,
-		}))
-	}
-
-	handlers.Setup(app, dev)
+	handlers.BaseRoutes(app)
+	handlers.HelloRoutes(app)
+	handlers.MessageRoutes(app)
+	handlers.APIRoutes(app)
+	handlers.NotFoundRoutes(app)
 
 	log.Println("Server listening on port: " + *port)
 	log.Fatal(app.Listen(*port))
+}
+
+func parseDBString(s string) ([]string, error) {
+	if s == "" {
+		return nil, errors.New("string cannot be empty")
+	}
+
+	dbs := strings.Split(s, "://")
+	if len(dbs) != 2 {
+		return nil, errors.New("wrong db string format")
+	}
+
+	switch dbs[0] {
+	case "sqlite", "sqlite3":
+		dbs[0] = "sqlite"
+	case "postgresql", "postgres":
+		dbs[0] = "postgresql"
+	case "mysql", "mariadb":
+		dbs[0] = "mysql"
+	default:
+		return nil, errors.New("unsuported database type")
+	}
+
+	return dbs, nil
 }
