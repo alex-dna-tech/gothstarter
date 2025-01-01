@@ -1,0 +1,29 @@
+package pages
+
+import "alex-dna-tech/goth/views/layouts"
+import "context"
+import "fmt"
+
+func NameFromContext(ctx context.Context) string {
+	if name, ok := ctx.Value("name").(string); ok && name != "" {
+		return name
+	}
+	return "World"
+}
+
+func debug(v any) string {
+	return fmt.Sprintf("%#v", v)
+}
+
+templ Hello(title, name string) {
+	@layouts.Base(title) {
+		<article class="prose">
+			<h1>Name</h1>
+			<div>Hello { name }</div>
+			<div>Hello { NameFromContext(ctx) } (from context)</div>
+			<pre>
+				{ debug(ctx) }
+			</pre>
+		</article>
+	}
+}

@@ -2,18 +2,15 @@
 package handlers
 
 import (
-	"net/http"
 	"strings"
 
-	"alex-dna-tech/goth/views/components"
 	"alex-dna-tech/goth/views/pages"
 
 	"github.com/a-h/templ"
 	"github.com/gofiber/fiber/v2"
-	"github.com/gofiber/fiber/v2/middleware/adaptor"
 )
 
-func Setup(app *fiber.App, dev *bool) {
+func BaseRoutes(app *fiber.App) {
 	app.Get("/", func(c *fiber.Ctx) error {
 		return Render(c, pages.Index("Home Page"))
 	})
@@ -23,33 +20,21 @@ func Setup(app *fiber.App, dev *bool) {
 	app.Get("/contacts", func(c *fiber.Ctx) error {
 		return Render(c, pages.Contacts("Contacts Page"))
 	})
+}
 
-	msg := app.Group("/messages")
-	msg.Post("/", func(c *fiber.Ctx) error {
-		return Render(c, components.Message("Form message"))
-	})
-	msg.Put("/", func(c *fiber.Ctx) error {
-		return Render(c, components.Message("Message Send"))
-	})
-
-	api := app.Group("/api/v1")
-	api.Get("/", Hello)
-
-	/* Page Not Found Management */
+func NotFoundRoutes(app *fiber.App) {
 	app.Use(func(c *fiber.Ctx) error {
-		return Render(c, pages.NotFound("Not Found"), templ.WithStatus(http.StatusNotFound))
+		c.Response().SetStatusCode(fiber.StatusNotFound)
+		return Render(c, pages.NotFound("Not Found"))
 	})
 }
 
-func Render(c *fiber.Ctx, component templ.Component, options ...func(*templ.ComponentHandler)) error {
-	componentHandler := templ.Handler(component)
-	for _, o := range options {
-		o(componentHandler)
-	}
+func Render(c *fiber.Ctx, component templ.Component) error {
+	c.Set("Content-Type", "text/html")
 
 	if strings.HasPrefix(c.App().Config().AppName, "DEV") {
 		c.Set("Cache-Control", "no-store")
 	}
 
-	return adaptor.HTTPHandler(componentHandler)(c)
+	return component.Render(c.Context(), c.Response().BodyWriter())
 }
