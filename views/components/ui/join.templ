@@ -1,0 +1,13 @@
+// data_display
+// https://daisyui.com/components/join
+package ui
+
+templ Join(components []templ.Component) {
+	<div class="join">
+		for _, c := range components {
+			<div class="join-item">
+				@c
+			</div>
+		}
+	</div>
+}

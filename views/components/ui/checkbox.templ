@@ -1,0 +1,40 @@
+// data_input
+// https://daisyui.com/components/checkbox
+package ui
+
+type CheckboxProps struct {
+	ID      string
+	Before  string
+	After   string
+	Name    string
+	Checked bool
+	Class   string
+	Attrs   templ.Attributes
+}
+
+templ Checkbox(props CheckboxProps) {
+	<label class="label justify-center cursor-pointer space-x-4">
+		if props.Before != "" {
+			<span class="label-text">
+				{ props.Before }
+			</span>
+		}
+		<input
+			{ props.Attrs... }
+			if props.ID != "" {
+				id={ props.ID }
+			}
+			type="checkbox"
+			name={ props.Name }
+			if props.Checked {
+				checked="checked"
+			}
+			class={ "checkbox", props.Class }
+		/>
+		if props.After != "" {
+			<span class="label-text">
+				{ props.After }
+			</span>
+		}
+	</label>
+}

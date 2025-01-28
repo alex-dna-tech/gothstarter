@@ -1,0 +1,28 @@
+// data_display
+// https://daisyui.com/components/card
+package ui
+
+type CardProps struct {
+	Title   string
+	Content string
+	Source  string
+	Alt     string
+	Class   string
+}
+
+templ Card(props CardProps) {
+	<div class={ "card", props.Class }>
+		if props.Source != "" {
+			<figure>
+				<img src={ props.Source } alt={ props.Alt }/>
+			</figure>
+		}
+		<div class="card-body">
+			<h2 class="card-title">{ props.Title }</h2>
+			<p>{ props.Content }</p>
+			<div class="card-actions justify-end">
+				{ children... }
+			</div>
+		</div>
+	</div>
+}

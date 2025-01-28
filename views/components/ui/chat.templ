@@ -1,0 +1,45 @@
+// data_display
+// https://daisyui.com/components/chat
+package ui
+
+type ChatProps []ChatMessageProps
+
+type ChatMessageProps struct {
+	AvatarURL string
+	Sender    string
+	Time      string
+	Message   string
+	Footer    string
+	Location  string
+	Class     string
+}
+
+templ Chat(props ChatProps) {
+	for _, prop := range props {
+		@ChatMessage(prop)
+	}
+}
+
+templ ChatMessage(props ChatMessageProps) {
+	<div
+		class={
+			"chat",
+			templ.KV("chat-start", props.Location == "start"),
+			templ.KV("chat-end", props.Location == "end"),
+		}
+	>
+		if props.AvatarURL != "" {
+			@Avatar(AvatarProps{ContainerClass: "chat-image w-10 rounded-full", Source: props.AvatarURL})
+		}
+		<div class="chat-header">
+			{ props.Sender }
+			<time class="text-xs opacity-50">{ props.Time }</time>
+		</div>
+		<div class={ "chat-bubble", props.Class }>
+			{ props.Message }
+		</div>
+		<div class="chat-footer">
+			{ props.Footer }
+		</div>
+	</div>
+}

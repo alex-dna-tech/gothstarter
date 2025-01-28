@@ -1,0 +1,25 @@
+// data_input
+// https://daisyui.com/components/radio
+package ui
+
+type RadioProps struct {
+	Name   string
+	Values map[string]string
+	Class  string
+}
+
+templ Radio(props RadioProps) {
+	for l, v := range props.Values {
+		<div class="form-control">
+			<label class="label cursor-pointer">
+				<span class="label-text">{ l }</span>
+				<input
+					type="radio"
+					name={ props.Name }
+					value={ v }
+					class={ "radio", props.Class }
+				/>
+			</label>
+		</div>
+	}
+}

@@ -1,0 +1,28 @@
+// data_display
+// https://daisyui.com/components/avatar
+package ui
+
+type AvatarProps struct {
+	AvatarClass      string
+	ContainerClass   string
+	Source           string
+	Placeholder      string
+	PlaceholderClass string
+}
+
+templ Avatar(props AvatarProps) {
+	<div class={ "avatar", props.AvatarClass }>
+		<div class={ props.ContainerClass }>
+			<img src={ props.Source }/>
+			if props.Placeholder != "" {
+				<span class={ props.PlaceholderClass }>{ props.Placeholder }</span>
+			}
+		</div>
+	</div>
+}
+
+templ AvatarGroup(class string) {
+	<div class={ "avatar-group rtl:space-x-reverse", class }>
+		{ children... }
+	</div>
+}

@@ -1,0 +1,23 @@
+// navigation
+// https://daisyui.com/components/steps
+package ui
+
+type StepProps struct {
+	Label string
+	Done  bool
+	Attrs templ.Attributes
+}
+
+templ Steps() {
+	<ul class="steps">
+		{ children... }
+	</ul>
+}
+
+templ Step(props StepProps) {
+	<li
+		class={ "step", templ.KV("step-primary", props.Done) }
+	>
+		<a { props.Attrs... }>{ props.Label }</a>
+	</li>
+}

@@ -1,0 +1,29 @@
+// navigation
+package ui
+
+type AnchorProps struct {
+	Href      string
+	Label     string
+	LeftIcon  templ.Component
+	RightIcon templ.Component
+	Attrs     templ.Attributes
+	Class     string
+}
+
+templ Anchor(props AnchorProps) {
+	<a
+		if props.Href != "" {
+			href={ templ.SafeURL(props.Href) }
+		}
+		class={ "group items-center cursor-pointer", props.Class }
+		{ props.Attrs... }
+	>
+		if props.LeftIcon != nil {
+			@props.LeftIcon
+		}
+		{ props.Label }
+		if props.RightIcon != nil {
+			@props.RightIcon
+		}
+	</a>
+}

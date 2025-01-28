@@ -23,5 +23,6 @@
 - Use `make dev` to run application in development mode. Open http://127.0.0.1:7331 in your browser to development environment.
 - Run `docker-copmose up -d` to start up containers. 
 
-
+## Development
+http://localhost:8800/?sqlite=&username=&db=%2Fdata%2Fgothbin-prod.db
 

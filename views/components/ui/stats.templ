@@ -1,0 +1,28 @@
+// data_display
+// https://daisyui.com/components/stat
+package ui
+
+type StatProps struct {
+	Title       string
+	Value       string
+	Description string
+}
+
+templ Stats() {
+	<div class="stats stats-horizontal shadow">
+		{ children... }
+	</div>
+}
+
+templ Stat(props StatProps) {
+	<div class="stat">
+		<div class="stat-title">{ props.Title }</div>
+		<div class="stat-value">{ props.Value }</div>
+		if props.Description != "" {
+			<div class="stat-desc">{ props.Description }</div>
+		}
+		<div class="stat-actions">
+			{ children... }
+		</div>
+	</div>
+}

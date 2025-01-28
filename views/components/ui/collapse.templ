@@ -1,0 +1,25 @@
+// data_display
+// https://daisyui.com/components/collapse
+package ui
+
+type CollapseProps struct {
+	Class        string
+	Title        string
+	TitleClass   string
+	ContentClass string
+}
+
+templ Collapse(props CollapseProps) {
+	<div
+		tabindex="0"
+		class={ "collapse", props.Class }
+	>
+		<input type="checkbox"/>
+		<div class={ "collapse-title", props.TitleClass }>
+			{ props.Title }
+		</div>
+		<div class={ "collapse-content", props.ContentClass }>
+			{ children... }
+		</div>
+	</div>
+}

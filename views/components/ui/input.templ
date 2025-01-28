@@ -1,0 +1,104 @@
+// data_input
+// https://daisyui.com/components/input
+package ui
+
+import "fmt"
+
+type InputProps struct {
+	ID              string
+	Type            string // defaults to "text"
+	Label           string
+	Name            string
+	Value           string
+	Placeholder     string
+	Err             string
+	Attrs           templ.Attributes
+	Class           string
+	Icon            templ.Component
+	Disabled        bool
+	DisabledMessage string
+	Required        bool
+}
+
+templ Input(props InputProps) {
+	<div
+		id={ fmt.Sprintf("%s-div", props.Name) }
+		hx-target={ fmt.Sprintf("#%s-error", props.Name) }
+		hx-swap="innerHTML"
+		class="w-full"
+	>
+		<label class={ "form-control w-full", }>
+			if props.Label != "" {
+				<div class="py-1 pr-2">
+					<span class="label-text leading-4">{ props.Label }</span>
+				</div>
+			}
+			<div
+				class={
+					"relative input !px-0 bg-transparent w-full flex items-center flex-grow",
+					templ.KV("!pl-3", props.Icon != nil),
+					templ.KV("input-error", props.Err != ""),
+					templ.KV("pb-1", props.Label != ""),
+					templ.KV("tooltip tooltip-top", props.DisabledMessage != ""),
+					props.Class,
+				}
+				if props.Disabled && props.DisabledMessage != "" {
+					data-tip={ props.DisabledMessage }
+				}
+			>
+				if props.Icon != nil {
+					@props.Icon
+				}
+				<input
+					{ props.Attrs... }
+					if props.ID != "" {
+						id={ props.ID }
+					}
+					name={ props.Name }
+					if props.Type != "" {
+						type={ props.Type }
+					} else {
+						type="text"
+					}
+					placeholder={ props.Placeholder }
+					class={
+						"w-full focus:!outline-none !appearance-none px-2",
+						templ.KV("input-error", props.Err != ""),
+					}
+					value={ props.Value }
+					if props.Disabled {
+						disabled
+					}
+					if props.Required {
+						required
+					}
+				/>
+				<script>
+					document.addEventListener("htmx:afterRequest", (evt) => {
+						let name = evt.detail.elt.getAttribute("name")
+						let div = document.getElementById(name + "-div")
+						if (div === null) {
+							return
+						}
+						let inp = div.querySelector("input[name=" + name + "]")
+						if (200 <= evt.detail.xhr.status && evt.detail.xhr.status < 300) {
+							if (inp.classList.contains("input-error")) {
+								inp.classList.toggle("input-error")
+							}
+						} else {
+							if (!inp.classList.contains("input-error")) {
+								inp.classList.toggle("input-error")
+							}
+						}
+					})
+				</script>
+			</div>
+			<span
+				id={ fmt.Sprintf("%s-error", props.Name) }
+				class="text-error h-4 text-xs pt-1"
+			>
+				{ props.Err }
+			</span>
+		</label>
+	</div>
+}

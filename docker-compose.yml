@@ -1,29 +1,78 @@
+x-mysql: &mysql
+  DB_STRING: "mysql://admin:admin@tcp(mysql:3306)/goth"
+
+x-postgres: &postgres
+  DB_STRING: "postgres://admin:admin@postgres:5432/goth?sslmode=disable"
+
+x-goth: &goth
+  build: .
+  pid: "host" # Prefork enabled requires PID != 1
+  environment:
+  ports:
+    - "3000:3000"
+
+x-migrate: &migrate
+  image: migrate/migrate:latest
+  command:
+    - "-database" 
+    - "$$DB_STRING"
+    - "-path"
+    - "/data/db/postgres/migrations/"
+    - "-verbose"
+    - "up"
+  volumes:
+    - ".:/data"
+
 services:
-  goth:
-    container_name: goth
-    build: .
-    pid: "host" # Prefork enabled requires PID != 1
+  goth-mysql:
+    <<: *goth
+    environment:
+      <<: *mysql
     ports:
-      - "3000:3000"
+      - "3001:3000"
 
   mysql:
     image: mariadb:latest
-    container_name: mysql
     restart: unless-stopped
     environment:
       MARIADB_RANDOM_ROOT_PASSWORD: true
       MYSQL_USER: admin
       MYSQL_PASSWORD: admin
       MYSQL_DATABASE: goth
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 3
     ports:
       - "3306:3306"
     volumes:
       - ./tmp/mariadb:/var/lib/mysql
 
+  migrate-mysql:
+    depends_on:
+      mysql:
+        condition: service_healthy
+    <<: *migrate
+    environment:
+      <<: *mysql
+
+  goth-postgres:
+    <<: *goth
+    environment:
+      <<: *postgres
+    ports:
+      - "3002:3000"
+
   postgres:
     image: postgres:latest
-    container_name: postgres
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
@@ -32,3 +81,38 @@ services:
       - "5432:5432"
     volumes:
       - ./tmp/postgres-data:/var/lib/postgresql/data
+
+  migrate-postgres:
+    depends_on:
+      postgres:
+        condition: service_healthy
+    <<: *migrate
+    environment:
+      <<: *postgres
+
+  adminer:
+    image: adminer:latest
+    restart: unless-stopped
+    volumes:
+      - ".:/data"
+    entrypoint:
+      - "/bin/bash"
+      - "-c"
+      - |
+        cat <<-EOF >/var/www/html/plugins-enabled/login-with-empty-password.php
+        <?php
+        class AdminerLoginWithEmptyPassword {
+          function login() {
+            return true;
+          }
+        }
+
+        return new AdminerLoginWithEmptyPassword();
+        EOF
+
+        /usr/local/bin/entrypoint.sh php -S 0.0.0.0:8080 -t /var/www/html
+    ports:
+      - "8800:8080"
+
+
+

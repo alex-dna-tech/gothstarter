@@ -1,11 +1,134 @@
 package pages
 
-import "alex-dna-tech/goth/views/layouts"
+import (
+	"alex-dna-tech/goth/views/layouts"
+	"alex-dna-tech/goth/views/components/ui"
+	"fmt"
+)
 
-templ About(title string) {
+templ About(title, search string) {
 	@layouts.Page(title) {
+		<div class="h-[600px]">
+			@ActiveSearchExample(
+				"active-search-example-table",
+				search,
+				[]templ.Component{
+					ui.PlainText("First name"),
+					ui.PlainText("Last name"),
+					ui.PlainText("Email"),
+				},
+				activeSearchTableDataComponents(),
+			)
+		</div>
 		<p>
 			Lorem, ipsum dolor sit amet consectetur adipisicing elit. Asperiores, doloribus.
 		</p>
+		<div class="flex justify-center items-center pt-4">
+			@ui.Steps() {
+				@ui.Step(ui.StepProps{Label: "Register", Done: true})
+				@ui.Step(ui.StepProps{Label: "Choose plan", Done: true})
+				@ui.Step(ui.StepProps{Label: "Purchase"})
+				@ui.Step(ui.StepProps{Label: "Receive product"})
+			}
+		</div>
 	}
+}
+
+// Active search input for a table
+templ ActiveSearchExampleTable() {
+	<div class="h-[600px]">
+		@ActiveSearchExample(
+			"active-search-example-table",
+			"",
+			[]templ.Component{
+				ui.PlainText("First name"),
+				ui.PlainText("Last name"),
+				ui.PlainText("Email"),
+			},
+			activeSearchTableDataComponents(),
+		)
+	</div>
+}
+
+templ ActiveSearchExample(id, search string, headers []templ.Component, rows []templ.Component) {
+	<div class="py-8">
+		@ui.ActiveSearchInput(
+			ui.ActiveSearchInputProps{
+				ID:     "active-search-example-input",
+				URL:    "/active-search",
+				Target: fmt.Sprintf("#%s > tbody", id),
+				Input: ui.InputProps{
+					Icon:        searchIcon(),
+					Name:        "active-search-example",
+					Type:        "search",
+					Placeholder: "Filter table...",
+					Value:       search,
+					Class:       "input-sm input-bordered",
+				},
+			})
+		@ui.Table(
+			headers,
+			activeSearchTableDataComponents(),
+			templ.Attributes{"id": "active-search-example-table"},
+		)
+	</div>
+}
+
+templ searchIcon() {
+	<svg
+		class="w-5 h-5"
+		viewBox="0 0 32 32"
+		version="1.1"
+		xmlns="http://www.w3.org/2000/svg"
+		xmlns:xlink="http://www.w3.org/1999/xlink"
+		xmlns:sketch="http://www.bohemiancoding.com/sketch/ns"
+	>
+		<g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd" sketch:type="MSPage">
+			<g class="fill-base-content/60" id="Icon-Set" sketch:type="MSLayerGroup" transform="translate(-256.000000, -1139.000000)">
+				<path d="M269.46,1163.45 C263.17,1163.45 258.071,1158.44 258.071,1152.25 C258.071,1146.06 263.17,1141.04 269.46,1141.04 C275.75,1141.04 280.85,1146.06 280.85,1152.25 C280.85,1158.44 275.75,1163.45 269.46,1163.45 L269.46,1163.45 Z M287.688,1169.25 L279.429,1161.12 C281.591,1158.77 282.92,1155.67 282.92,1152.25 C282.92,1144.93 276.894,1139 269.46,1139 C262.026,1139 256,1144.93 256,1152.25 C256,1159.56 262.026,1165.49 269.46,1165.49 C272.672,1165.49 275.618,1164.38 277.932,1162.53 L286.224,1170.69 C286.629,1171.09 287.284,1171.09 287.688,1170.69 C288.093,1170.3 288.093,1169.65 287.688,1169.25 L287.688,1169.25 Z" id="search" sketch:type="MSShapeGroup"></path>
+			</g>
+		</g>
+	</svg>
+}
+
+func activeSearchTableDataComponents() []templ.Component {
+	coms := make([]templ.Component, len(ActiveSearchTableData))
+	for i := range ActiveSearchTableData {
+		coms[i] = ActiveSearchTableRow(
+			ActiveSearchTableData[i].FirstName,
+			ActiveSearchTableData[i].LastName,
+			ActiveSearchTableData[i].Email)
+	}
+	return coms
+}
+
+var ActiveSearchTableData = []struct {
+	FirstName string
+	LastName  string
+	Email     string
+}{
+	{FirstName: "John", LastName: "Smith", Email: "john.smith@email.com"},
+	{FirstName: "Emily", LastName: "Johnson", Email: "emily.johnson@email.com"},
+	{FirstName: "Michael", LastName: "Brown", Email: "michael.brown@email.com"},
+	{FirstName: "Jessica", LastName: "Williams", Email: "jessica.williams@email.com"},
+	{FirstName: "David", LastName: "Jones", Email: "david.jones@email.com"},
+	{FirstName: "Sarah", LastName: "Miller", Email: "sarah.miller@email.com"},
+	{FirstName: "Christopher", LastName: "Davis", Email: "chris.davis@email.com"},
+	{FirstName: "Amanda", LastName: "Wilson", Email: "amanda.wilson@email.com"},
+	{FirstName: "James", LastName: "Taylor", Email: "james.taylor@email.com"},
+	{FirstName: "Laura", LastName: "Moore", Email: "laura.moore@email.com"},
+}
+
+templ ActiveSearchTableRows(rows []templ.Component) {
+	for _, r := range rows {
+		@r
+	}
+}
+
+templ ActiveSearchTableRow(firstName, lastName, email string) {
+	<tr>
+		<td>{ firstName }</td>
+		<td>{ lastName }</td>
+		<td>{ email }</td>
+	</tr>
 }

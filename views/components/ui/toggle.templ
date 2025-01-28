@@ -1,0 +1,64 @@
+// data_input
+// https://daisyui.com/components/toggle
+package ui
+
+type ToggleProps struct {
+	ID        string
+	Before    string
+	After     string
+	Name      string
+	Checked   bool
+	Class     string
+	Highlight bool
+	Attrs     templ.Attributes
+}
+
+templ Toggle(props ToggleProps) {
+	<div class="form-control">
+		<label class="label cursor-pointer space-x-2">
+			if props.Before != "" {
+				<span
+					class={
+						"label-text",
+						templ.KV("text-primary", props.Highlight && !props.Checked),
+					}
+				>
+					{ props.Before }
+				</span>
+			}
+			<input
+				{ props.Attrs... }
+				type="checkbox"
+				if props.ID != "" {
+					id={ props.ID }
+				}
+				name={ props.Name }
+				class={ "toggle", props.Class }
+				if props.Checked {
+					checked="checked"
+				}
+				if props.Highlight {
+					onclick="toggler(event)"
+				}
+			/>
+			if props.After != "" {
+				<span
+					class={
+						"label-text",
+						templ.KV("text-primary", props.Highlight && props.Checked),
+					}
+				>
+					{ props.After }
+				</span>
+			}
+		</label>
+		if props.Highlight {
+			<script>
+                function toggler(evt) {
+                    evt.target.previousElementSibling.classList.toggle("text-primary")
+                    evt.target.nextElementSibling.classList.toggle("text-primary")
+                }
+            </script>
+		}
+	</div>
+}

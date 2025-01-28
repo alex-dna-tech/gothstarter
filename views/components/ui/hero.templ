@@ -1,0 +1,34 @@
+// layout
+// https://daisyui.com/components/hero
+package ui
+
+type HeroProps struct {
+	Source  string
+	Alt     string
+	Reverse bool
+	Class   string
+}
+
+templ Hero(props HeroProps) {
+	<div class={ "hero", props.Class }>
+		<div
+			class={
+				"hero-content",
+				"flex-col",
+				templ.KV("xl:flex-row", !props.Reverse),
+				templ.KV("xl:flex-row-reverse", props.Reverse),
+			}
+		>
+			if props.Source != "" {
+				<img
+					src={ props.Source }
+					alt={ props.Alt }
+					class="max-w-sm rounded-box shadow-2xl"
+				/>
+			}
+			<div>
+				{ children... }
+			</div>
+		</div>
+	</div>
+}

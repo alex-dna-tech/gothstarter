@@ -1,0 +1,44 @@
+// data_input
+// https://daisyui.com/components/range
+package ui
+
+import "fmt"
+
+type RangeProps struct {
+	ID    string
+	Label string
+	Name  string
+	Value int
+	Min   int
+	Max   int
+	Step  int
+	Class string
+}
+
+// Note: usage requires alpine.js
+templ Range(props RangeProps) {
+	<script src="/static/js/alpine.js" defer></script>
+	<div class="form-control">
+		<label
+			class="label space-x-1"
+			x-data={ fmt.Sprintf("{ value: %d }", props.Value) }
+		>
+			if props.Label != "" {
+				<span>{ props.Label }</span>
+			}
+			<input
+				type="range"
+				if props.ID != "" {
+					id={ props.ID }
+				}
+				name={ props.Name }
+				min={ fmt.Sprintf("%d", props.Min) }
+				max={ fmt.Sprintf("%d", props.Max) }
+				x-model="value"
+				class={ "range", props.Class }
+				step={ fmt.Sprintf("%d", props.Step) }
+			/>
+			<div x-text="value" class="w-full max-w-7"></div>
+		</label>
+	</div>
+}

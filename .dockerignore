@@ -1,9 +1,7 @@
 .env
 bin
-gothbin
-gothbin.exe
+gothbin*
 node_modules/
 public/main.css
 public/main.js
-sqlite.db
 tmp/

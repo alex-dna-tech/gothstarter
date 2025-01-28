@@ -1,0 +1,35 @@
+// navigation
+// https://daisyui.com/components/tab
+package ui
+
+type TabsProps struct {
+	Name         string
+	Class        string
+	Tabs         []TabProps
+	ContentClass string
+}
+
+type TabProps struct {
+	Label   string
+	Content templ.Component
+}
+
+templ Tabs(props TabsProps) {
+	<div role="tablist" class={ "tabs", props.Class }>
+		for i, tab := range props.Tabs {
+			<input
+				type="radio"
+				name={ props.Name }
+				role="tab"
+				class="tab"
+				aria-label={ tab.Label }
+				if i == 0 {
+					checked="checked"
+				}
+			/>
+			<div class={ "tab-content", props.ContentClass }>
+				@tab.Content
+			</div>
+		}
+	</div>
+}

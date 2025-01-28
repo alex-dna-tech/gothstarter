@@ -1,71 +1,80 @@
 package main
 
 import (
-	"errors"
-	"flag"
+	"context"
+	"fmt"
 	"log"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
+	"time"
 
-	"alex-dna-tech/goth/handlers"
-
-	helmet "github.com/gofiber/fiber/v2/middleware/helmet"
-	flog "github.com/gofiber/fiber/v2/middleware/logger"
-	frec "github.com/gofiber/fiber/v2/middleware/recover"
+	"alex-dna-tech/goth/server"
 )
 
-var (
-	port = flag.String("port", ":3000", "Port to listen on")
-)
-
-// Build required tags argument, by default 'go build -tags "prod sqlite3" .'
 func main() {
-	flag.Parse()
-
-	s := os.Getenv("DB_STRING")
-	dbs, err := parseDBString(s)
-	if err != nil {
-		log.Fatalf("'DB_STRING' environment variable required, error: %v", err)
+	// Required environment variables
+	env := os.Getenv("ENV")
+	if env == "" {
+		env = "prod"
 	}
 
-	initDB(dbs[1])
+	portAddr := os.Getenv("PORT")
+	if portAddr == "" {
+		portAddr = ":3000"
+	}
 
+	dbStr := os.Getenv("DB_STRING")
+	if dbStr == "" {
+		dbStr = "sqlite3://gothbin-prod.db"
+		// log.Fatal("DB_STRING environment required")
+	}
+
+	// Start Fiber Server
 	conf := initConf()
-	conf.AppName = strings.ToUpper(ENV+"-"+DB_TYPE) + "-GOTH"
+	conf.AppName = strings.ToUpper(
+		ENV+"-"+strings.Split(dbStr, "://")[0]) + "-GOTH"
 
-	app := initApp(conf)
-	app.Use(frec.New(), helmet.New(), flog.New())
+	server := server.New(conf, dbStr, staticFS)
+	server.RegisterCORS()
+	server.RegisterRoutes()
 
-	handlers.BaseRoutes(app)
-	handlers.HelloRoutes(app)
-	handlers.MessageRoutes(app)
-	handlers.APIRoutes(app)
-	handlers.NotFoundRoutes(app)
+	// Create a done channel to signal when the shutdown is complete
+	done := make(chan bool, 1)
 
-	log.Println("Server listening on port: " + *port)
-	log.Fatal(app.Listen(*port))
+	go func(portAddr string) {
+		err := server.Listen(portAddr)
+		if err != nil {
+			panic(fmt.Sprintf("http server error: %s", err))
+		}
+	}(portAddr)
+
+	// Run graceful shutdown in a separate goroutine
+	go gracefulShutdown(server, done)
+
+	// Wait for the graceful shutdown to complete
+	<-done
+	log.Println("Graceful shutdown complete.")
 }
 
-func parseDBString(s string) ([]string, error) {
-	if s == "" {
-		return nil, errors.New("string cannot be empty")
-	}
+func gracefulShutdown(fiberServer *server.FiberServer, done chan bool) {
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
-	dbs := strings.Split(s, "://")
-	if len(dbs) != 2 {
-		return nil, errors.New("wrong db string format")
-	}
+	// Listen for the interrupt signal.
+	<-ctx.Done()
+	log.Println("shutting down gracefully, press Ctrl+C again to force")
 
-	switch dbs[0] {
-	case "sqlite", "sqlite3":
-		dbs[0] = "sqlite"
-	case "postgresql", "postgres":
-		dbs[0] = "postgresql"
-	case "mysql", "mariadb":
-		dbs[0] = "mysql"
-	default:
-		return nil, errors.New("unsuported database type")
+	// The context is used to inform the server it has 5 seconds to finish
+	// the request it is currently handling
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	if err := fiberServer.ShutdownWithContext(ctx); err != nil {
+		log.Printf("Server forced to shutdown with error: %v", err)
 	}
+	log.Println("Server exiting")
 
-	return dbs, nil
+	// Notify the main goroutine that the shutdown is complete
+	done <- true
 }

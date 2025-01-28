@@ -1,22 +1,26 @@
 version: "2"
 sql:
-  - engine: "postgresql"
-    queries: "db/postgresql/queries"
-    schema: "db/postgresql/migrations"
-    gen:
-      go:
-        package: "postgresql_db"
-        out: "db/postgresql"
-        emit_json_tags: true
-        # emit_interface: true
-        # emit_prepared_queries: true
   - engine: "sqlite"
-    queries: "db/sqlite3/queries"
-    schema: "db/sqlite3/migrations"
+    queries: "database/sqlite3/queries"
+    schema: "database/sqlite3/migrations"
     gen:
       go:
-        package: "sqlite3_db"
-        out: "db/sqlite3"
+        package: "store"
+        output_files_suffix: "-sqlite3"
+        out: "database/sqlite3"
+        build_tags: "sqlite || sqlite3 || (!postgresql && !postgres && !mysql && !mariadb)"
         emit_json_tags: true
-        # emit_interface: true
+        json_tags_case_style: "snake"
+        emit_interface: true
         # emit_prepared_queries: true
+  - engine: "postgresql"
+    queries: "database/postgresql/queries"
+    schema: "database/postgresql/migrations"
+    gen:
+      go:
+        package: "store"
+        output_files_suffix: "-postgresql"
+        out: "database/postgresql"
+        sql_package: "pgx/v5"
+        build_tags: "postgresql"
+        emit_json_tags: true

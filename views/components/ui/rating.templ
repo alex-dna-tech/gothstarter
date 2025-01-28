@@ -1,0 +1,65 @@
+// data_input
+// https://daisyui.com/components/rating
+package ui
+
+import "fmt"
+
+type RatingProps struct {
+	Name  string
+	Min   int
+	Max   int
+	Class string
+	Value int
+}
+
+templ Rating(props RatingProps) {
+	<div class="rating">
+		for i := props.Min; i <= props.Max; i++ {
+			if i == 0 {
+				<input
+					type="radio"
+					name={ props.Name }
+					value={ fmt.Sprintf("%d", i) }
+					class="rating-hidden"
+				/>
+			} else {
+				<input
+					type="radio"
+					name={ props.Name }
+					value={ fmt.Sprintf("%d", i) }
+					class={ "mask mask-star-2 bg-yellow-400", props.Class }
+					if i+1 == props.Max {
+						checked="checked"
+					}
+				/>
+			}
+		}
+	</div>
+}
+
+templ RatingDisplay(props RatingProps) {
+	<div class="rating">
+		for i := props.Min; i <= props.Max; i++ {
+			if i == 0 {
+				<input
+					type="radio"
+					name={ props.Name }
+					value={ fmt.Sprintf("%d", i) }
+					class="rating-hidden cursor-default"
+					disabled
+				/>
+			} else {
+				<input
+					type="radio"
+					name={ props.Name }
+					value={ fmt.Sprintf("%d", i) }
+					class={ "mask mask-star-2 bg-accent cursor-default", props.Class }
+					if i == props.Value {
+						checked="checked"
+					}
+					disabled
+				/>
+			}
+		}
+	</div>
+}
