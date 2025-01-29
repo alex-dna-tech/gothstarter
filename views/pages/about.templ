@@ -4,6 +4,7 @@ import (
 	"alex-dna-tech/goth/views/layouts"
 	"alex-dna-tech/goth/views/components/ui"
 	"fmt"
+	"strings"
 )
 
 templ About(title, search string) {
@@ -17,7 +18,7 @@ templ About(title, search string) {
 					ui.PlainText("Last name"),
 					ui.PlainText("Email"),
 				},
-				activeSearchTableDataComponents(),
+				activeSearchTableDataComponents(search),
 			)
 		</div>
 		<p>
@@ -35,7 +36,7 @@ templ About(title, search string) {
 }
 
 // Active search input for a table
-templ ActiveSearchExampleTable() {
+templ ActiveSearchExampleTable(search string) {
 	<div class="h-[600px]">
 		@ActiveSearchExample(
 			"active-search-example-table",
@@ -45,7 +46,7 @@ templ ActiveSearchExampleTable() {
 				ui.PlainText("Last name"),
 				ui.PlainText("Email"),
 			},
-			activeSearchTableDataComponents(),
+			activeSearchTableDataComponents(search),
 		)
 	</div>
 }
@@ -68,7 +69,7 @@ templ ActiveSearchExample(id, search string, headers []templ.Component, rows []t
 			})
 		@ui.Table(
 			headers,
-			activeSearchTableDataComponents(),
+			activeSearchTableDataComponents(search),
 			templ.Attributes{"id": "active-search-example-table"},
 		)
 	</div>
@@ -91,15 +92,18 @@ templ searchIcon() {
 	</svg>
 }
 
-func activeSearchTableDataComponents() []templ.Component {
-	coms := make([]templ.Component, len(ActiveSearchTableData))
-	for i := range ActiveSearchTableData {
-		coms[i] = ActiveSearchTableRow(
-			ActiveSearchTableData[i].FirstName,
-			ActiveSearchTableData[i].LastName,
-			ActiveSearchTableData[i].Email)
+func activeSearchTableDataComponents(search string) []templ.Component {
+
+	out := make([]templ.Component, 0, len(ActiveSearchTableData))
+	for _, rowData := range ActiveSearchTableData {
+		if search == "" || (strings.Contains(strings.ToLower(rowData.FirstName), search) ||
+			strings.Contains(strings.ToLower(rowData.LastName), search) ||
+			strings.Contains(strings.ToLower(rowData.Email), search)) {
+			out = append(out, ActiveSearchTableRow(
+				rowData.FirstName, rowData.LastName, rowData.Email))
+		}
 	}
-	return coms
+	return out
 }
 
 var ActiveSearchTableData = []struct {
@@ -119,8 +123,8 @@ var ActiveSearchTableData = []struct {
 	{FirstName: "Laura", LastName: "Moore", Email: "laura.moore@email.com"},
 }
 
-templ ActiveSearchTableRows(rows []templ.Component) {
-	for _, r := range rows {
+templ ActiveSearchTableRows(search string) {
+	for _, r := range activeSearchTableDataComponents(search) {
 		@r
 	}
 }

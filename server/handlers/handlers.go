@@ -25,16 +25,5 @@ func ActiveSearch(c *fiber.Ctx) error {
 	time.Sleep(500 * time.Millisecond)
 	search := strings.ToLower(strings.TrimSpace(c.FormValue("active-search-example")))
 
-	out := make([]templ.Component, 0, len(pages.ActiveSearchTableData))
-
-	for _, rowData := range pages.ActiveSearchTableData {
-		if search == "" || (strings.Contains(strings.ToLower(rowData.FirstName), search) ||
-			strings.Contains(strings.ToLower(rowData.LastName), search) ||
-			strings.Contains(strings.ToLower(rowData.Email), search)) {
-			out = append(out, pages.ActiveSearchTableRow(
-				rowData.FirstName, rowData.LastName, rowData.Email))
-		}
-	}
-
-	return Render(c, pages.ActiveSearchTableRows(out))
+	return Render(c, pages.ActiveSearchTableRows(search))
 }
