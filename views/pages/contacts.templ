@@ -1,9 +1,12 @@
 package pages
 
-import "alex-dna-tech/goth/views/layouts"
+import (
+	"alex-dna-tech/goth/views/layouts"
+)
 
-templ Contacts(title string) {
+templ Contacts(title string, data any) {
 	@layouts.Page(title) {
 		<hr/>
+		{ debug(data) }
 	}
 }

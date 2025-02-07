@@ -93,7 +93,6 @@ templ searchIcon() {
 }
 
 func activeSearchTableDataComponents(search string) []templ.Component {
-
 	out := make([]templ.Component, 0, len(ActiveSearchTableData))
 	for _, rowData := range ActiveSearchTableData {
 		if search == "" || (strings.Contains(strings.ToLower(rowData.FirstName), search) ||

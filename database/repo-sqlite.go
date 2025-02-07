@@ -1,6 +1,6 @@
 //go:build sqlite || sqlite3 || (!postgresql && !postgres && !mysql && !mariadb)
 
-package store
+package repo
 
 import (
 	"database/sql"
@@ -9,7 +9,7 @@ import (
 	_ "modernc.org/sqlite"
 )
 
-func NewStore(dbstr string) Store {
+func NewDB(dbstr string) *sql.DB {
 	dbs, err := urlParse(dbstr)
 	if err != nil {
 		log.Fatal(err)
@@ -20,5 +20,5 @@ func NewStore(dbstr string) Store {
 		log.Fatal(err)
 	}
 
-	return &store{db: db}
+	return db
 }

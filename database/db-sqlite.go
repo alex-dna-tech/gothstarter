@@ -4,7 +4,7 @@
 // versions:
 //   sqlc v1.28.0
 
-package store
+package repo
 
 import (
 	"context"

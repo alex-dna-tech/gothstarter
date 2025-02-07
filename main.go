@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"os/signal"
-	"strings"
 	"syscall"
 	"time"
 
@@ -14,31 +13,16 @@ import (
 )
 
 func main() {
-	// Required environment variables
-	env := os.Getenv("ENV")
-	if env == "" {
-		env = "prod"
-	}
+	// Start Fiber Server
+	conf := initConf()
+	server := server.New(conf, staticFS)
+	server.RegisterCORS()
+	server.RegisterRoutes()
 
 	portAddr := os.Getenv("PORT")
 	if portAddr == "" {
 		portAddr = ":3000"
 	}
-
-	dbStr := os.Getenv("DB_STRING")
-	if dbStr == "" {
-		dbStr = "sqlite3://gothbin-prod.db"
-		// log.Fatal("DB_STRING environment required")
-	}
-
-	// Start Fiber Server
-	conf := initConf()
-	conf.AppName = strings.ToUpper(
-		ENV+"-"+strings.Split(dbStr, "://")[0]) + "-GOTH"
-
-	server := server.New(conf, dbStr, staticFS)
-	server.RegisterCORS()
-	server.RegisterRoutes()
 
 	// Create a done channel to signal when the shutdown is complete
 	done := make(chan bool, 1)

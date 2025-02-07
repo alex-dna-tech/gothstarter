@@ -1,9 +1,14 @@
 package server
 
 import (
+	"context"
+	"fmt"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 
+	repo "alex-dna-tech/goth/database"
 	"alex-dna-tech/goth/server/handlers"
 	"alex-dna-tech/goth/views/components"
 	"alex-dna-tech/goth/views/pages"
@@ -19,15 +24,29 @@ func (s *FiberServer) RegisterRoutes() {
 		return handlers.Render(c, pages.About("About Page", c.Query("active-search-example")))
 	})
 	base.Get("/contacts", func(c *fiber.Ctx) error {
-		return handlers.Render(c, pages.Contacts("Contacts Page"))
+		ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+		defer cancel()
+		search := repo.ActiveSearchProductParams{
+			ProductName:  "%Bob%",
+			CategoryName: "%Bob%",
+			SupplierName: "%Bob%",
+		}
+		products, err := repo.New(s.DB).ActiveSearchProduct(ctx, search)
+		if err != nil {
+			return err
+		}
+
+		fmt.Printf("products = %+v\n", products)
+
+		// var pTab []templ.Component
+		// for p, _ := range products {
+		// 	pTab = append(pTab, )
+		//
+		// }
+
+		return handlers.Render(c, pages.Contacts("Contacts Page", ""))
 	})
 	base.Get("/active-search", handlers.ActiveSearch)
-
-	// API
-	api := s.Group("/api/v1")
-	api.Get("/", handlers.APIResponse)
-
-	s.Get("/health", s.healthHandler)
 
 	// Messages
 	msg := s.Group("/messages")
@@ -38,6 +57,7 @@ func (s *FiberServer) RegisterRoutes() {
 		return handlers.Render(c, components.Message("Message Send"))
 	})
 
+	// Hello
 	s.Get("/hello/:name?", func(c *fiber.Ctx) error {
 		name := c.Params("name")
 		c.Locals("name", name)
@@ -46,6 +66,8 @@ func (s *FiberServer) RegisterRoutes() {
 		}
 		return handlers.Render(c, pages.Hello("Hello world", name))
 	})
+
+	s.Get("/health", s.healthHandler)
 }
 
 // Apply CORS middleware
@@ -60,7 +82,7 @@ func (s *FiberServer) RegisterCORS() {
 
 }
 
-func NotFoundRutes(app *fiber.App) {
+func NotFoundRoute(app *fiber.App) {
 	app.Use(func(c *fiber.Ctx) error {
 		c.Response().SetStatusCode(fiber.StatusNotFound)
 		return handlers.Render(c, pages.NotFound("Not Found"))
@@ -68,5 +90,5 @@ func NotFoundRutes(app *fiber.App) {
 }
 
 func (s *FiberServer) healthHandler(c *fiber.Ctx) error {
-	return c.JSON(s.db.Health())
+	return c.JSON(fiber.Map{})
 }

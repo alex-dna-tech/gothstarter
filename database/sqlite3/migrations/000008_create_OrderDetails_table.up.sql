@@ -1,5 +1,5 @@
 CREATE TABLE IF NOT EXISTS order_details(
-    orderDetail_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    order_detail_id INTEGER PRIMARY KEY AUTOINCREMENT,
     order_id INTEGER,
     product_id INTEGER,
     quantity INTEGER,

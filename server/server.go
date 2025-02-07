@@ -2,20 +2,39 @@
 package server
 
 import (
+	"database/sql"
+	"log"
+	"os"
+	"strings"
+
 	"github.com/gofiber/fiber/v2"
 
-	db "alex-dna-tech/goth/database"
+	repo "alex-dna-tech/goth/database"
 )
 
 type FiberServer struct {
 	*fiber.App
-	db db.Store
+	DB *sql.DB
 }
 
-func New(conf fiber.Config, dbstr string, mnt ...func(*fiber.App)) *FiberServer {
+func New(conf fiber.Config, mnt ...func(*fiber.App)) *FiberServer {
+	// Required environment variables
+	env, ok := os.LookupEnv("ENV")
+	if !ok {
+		env = "prod"
+	}
+
+	dbStr, ok := os.LookupEnv("DB_STRING")
+	if !ok {
+		log.Fatal("DB_STRING environment required")
+	}
+
+	dbEngine := strings.Split(dbStr, "://")[0]
+	conf.AppName = strings.ToUpper(env+"-"+dbEngine) + "-GOTH"
+
 	server := &FiberServer{
 		App: fiber.New(conf),
-		db:  db.NewStore(dbstr),
+		DB:  repo.NewDB(dbStr),
 	}
 
 	if len(mnt) > 0 {

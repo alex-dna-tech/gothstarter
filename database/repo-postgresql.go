@@ -1,6 +1,6 @@
 //go:build postgresql || postgres
 
-package store
+package repo
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func NewStore(dbstr string) Store {
+func NewDB(dbstr string) *pgx.Conn {
 	dbs, err := urlParse(dbstr)
 	if err != nil {
 		log.Fatal(err)
@@ -20,5 +20,5 @@ func NewStore(dbstr string) Store {
 		log.Fatal(err)
 	}
 
-	return &store{db: db}
+	return db
 }

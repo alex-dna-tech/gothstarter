@@ -5,7 +5,7 @@
 //   sqlc v1.28.0
 // source: products.sql
 
-package store
+package repo
 
 import (
 	"context"
@@ -16,22 +16,28 @@ const activeSearchProduct = `-- name: ActiveSearchProduct :many
 SELECT p.product_name, c.category_name, s.supplier_name, p.unit, p.price FROM products p
   JOIN categories c ON p.category_id = c.category_id
   JOIN suppliers s ON p.supplier_id = s.supplier_id 
-  WHERE p.product_name LIKE '%?%'
-    OR c.category_name LIKE '%?%'
-    OR s.supplier_name LIKE '%?%'
+  WHERE p.product_name LIKE ?
+    OR c.category_name LIKE ?
+    OR s.supplier_name LIKE ?
   ORDER BY product_id
 `
 
-type ActiveSearchProductRow struct {
-	ProductName  string          `json:"product_name"`
-	CategoryName string          `json:"category_name"`
-	SupplierName string          `json:"supplier_name"`
-	Unit         sql.NullString  `json:"unit"`
-	Price        sql.NullFloat64 `json:"price"`
+type ActiveSearchProductParams struct {
+	ProductName  string
+	CategoryName string
+	SupplierName string
 }
 
-func (q *Queries) ActiveSearchProduct(ctx context.Context) ([]ActiveSearchProductRow, error) {
-	rows, err := q.db.QueryContext(ctx, activeSearchProduct)
+type ActiveSearchProductRow struct {
+	ProductName  string
+	CategoryName string
+	SupplierName string
+	Unit         sql.NullString
+	Price        sql.NullFloat64
+}
+
+func (q *Queries) ActiveSearchProduct(ctx context.Context, arg ActiveSearchProductParams) ([]ActiveSearchProductRow, error) {
+	rows, err := q.db.QueryContext(ctx, activeSearchProduct, arg.ProductName, arg.CategoryName, arg.SupplierName)
 	if err != nil {
 		return nil, err
 	}
@@ -69,11 +75,11 @@ INSERT INTO products (
 `
 
 type CreateProductParams struct {
-	ProductName string          `json:"product_name"`
-	SupplierID  sql.NullInt64   `json:"supplier_id"`
-	CategoryID  sql.NullInt64   `json:"category_id"`
-	Unit        sql.NullString  `json:"unit"`
-	Price       sql.NullFloat64 `json:"price"`
+	ProductName string
+	SupplierID  sql.NullInt64
+	CategoryID  sql.NullInt64
+	Unit        sql.NullString
+	Price       sql.NullFloat64
 }
 
 func (q *Queries) CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error) {
@@ -207,12 +213,12 @@ UPDATE products
 `
 
 type UpdateProductByIDParams struct {
-	ProductName string          `json:"product_name"`
-	SupplierID  sql.NullInt64   `json:"supplier_id"`
-	CategoryID  sql.NullInt64   `json:"category_id"`
-	Unit        sql.NullString  `json:"unit"`
-	Price       sql.NullFloat64 `json:"price"`
-	ProductID   int64           `json:"product_id"`
+	ProductName string
+	SupplierID  sql.NullInt64
+	CategoryID  sql.NullInt64
+	Unit        sql.NullString
+	Price       sql.NullFloat64
+	ProductID   int64
 }
 
 func (q *Queries) UpdateProductByID(ctx context.Context, arg UpdateProductByIDParams) error {

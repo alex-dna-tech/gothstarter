@@ -5,22 +5,30 @@ sql:
     schema: "database/sqlite3/migrations"
     gen:
       go:
-        package: "store"
-        output_files_suffix: "-sqlite3"
-        out: "database/sqlite3"
-        build_tags: "sqlite || sqlite3 || (!postgresql && !postgres && !mysql && !mariadb)"
-        emit_json_tags: true
-        json_tags_case_style: "snake"
+        package: "repo"
+        out: "database"
         emit_interface: true
-        # emit_prepared_queries: true
+        build_tags: "sqlite || sqlite3 || (!postgresql && !postgres && !mysql && !mariadb)"
+        output_files_suffix: "-sqlite"
+        output_copyfrom_file_name: "copyfrom-sqlite.go"
+        output_batch_file_name: "batch-sqlite.go"
+        output_db_file_name: "db-sqlite.go"
+        output_querier_file_name: "querier-sqlite.go"
+        output_models_file_name: "models-sqlite.go"
+
   - engine: "postgresql"
     queries: "database/postgresql/queries"
     schema: "database/postgresql/migrations"
     gen:
       go:
-        package: "store"
-        output_files_suffix: "-postgresql"
-        out: "database/postgresql"
+        package: "repo"
+        out: "database"
+        emit_interface: true
         sql_package: "pgx/v5"
-        build_tags: "postgresql"
-        emit_json_tags: true
+        build_tags: "postgresql || postgres"
+        output_files_suffix: "-postgresql"
+        output_copyfrom_file_name: "copyfrom-postgresql.go"
+        output_batch_file_name: "batch-postgresql.go"
+        output_db_file_name: "db-postgresql.go"
+        output_querier_file_name: "querier-postgresql.go"
+        output_models_file_name: "models-postgresql.go"

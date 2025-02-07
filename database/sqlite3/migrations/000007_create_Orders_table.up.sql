@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS orders(      
     customer_id INTEGER,
     employee_id INTEGER,
-    orderDate DATETIME,
+    order_date DATETIME,
     shipper_id INTEGER,
     order_id INTEGER PRIMARY KEY AUTOINCREMENT,
     FOREIGN KEY (employee_id) REFERENCES employees (employee_id),

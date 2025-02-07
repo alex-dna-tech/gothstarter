@@ -4,14 +4,14 @@
 // versions:
 //   sqlc v1.28.0
 
-package store
+package repo
 
 import (
 	"context"
 )
 
 type Querier interface {
-	ActiveSearchProduct(ctx context.Context) ([]ActiveSearchProductRow, error)
+	ActiveSearchProduct(ctx context.Context, arg ActiveSearchProductParams) ([]ActiveSearchProductRow, error)
 	CreateProduct(ctx context.Context, arg CreateProductParams) (Product, error)
 	DeleteProductByID(ctx context.Context, productID int64) error
 	ListProducts(ctx context.Context) ([]Product, error)

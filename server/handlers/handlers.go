@@ -3,7 +3,6 @@ package handlers
 
 import (
 	"strings"
-	"time"
 
 	"alex-dna-tech/goth/views/pages"
 
@@ -22,7 +21,6 @@ func Render(c *fiber.Ctx, component templ.Component) error {
 }
 
 func ActiveSearch(c *fiber.Ctx) error {
-	time.Sleep(500 * time.Millisecond)
 	search := strings.ToLower(strings.TrimSpace(c.FormValue("active-search-example")))
 
 	return Render(c, pages.ActiveSearchTableRows(search))

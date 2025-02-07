@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS employees (
     last_name VARCHAR(255) NOT NULL,
     first_name VARCHAR(255) NOT NULL,
-    birthDate DATE NOT NULL,
+    birth_date DATE NOT NULL,
     photo TEXT,
     notes TEXT,
     employee_id INTEGER PRIMARY KEY AUTOINCREMENT
