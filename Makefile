@@ -1,31 +1,29 @@
 # Load default values
 NAME ?= gothbin
-NODE_ENV ?= prod
+ENV ?= dev
 
 BUILD_JS = esbuild assets/main.ts --bundle --outdir=public/
 BUILD_CSS = npx tailwindcss -i assets/main.css -o public/main.css
 
-# DB vars
-DB_STRING ?= sqlite3://$(NAME)-$(NODE_ENV).db
-DB = $(DB_STRING)
-DB_ENGINE = $(strip $(word 1, $(subst :, ,$(DB_STRING))))
+# DB vars (relative to air tmp dev by default)
+DB_STRING ?= sqlite3://$(NAME)-$(ENV).db
+DB_ENGINE ?= $(strip $(word 1, $(subst :, ,$(DB_STRING))))
 DB_MIGRATIONS = database/$(DB_ENGINE)/migrations
 
-# Build vars
+# Golang build vars
+GOPATH = $(shell go env GOPATH)
+GOTAGS = -tags "$(ENV) $(DB_ENGINE)"
 GIT_COMMIT = $(shell git rev-parse --short HEAD)
 GIT_TAG = $(shell git describe --abbrev=0 --tags --always --match "v*")
 GIT_IMPORT = $(shell go list -m)
 BUILD_DATE = $(shell date +%s)
 LDFLAGS = -ldflags "-s -w -X $(GIT_IMPORT).BuildDate=$(BUILD_DATE) -X $(GIT_IMPORT).GitCommit=$(GIT_COMMIT) -X $(GIT_IMPORT).GitTag=$(GIT_TAG)"
 
-GOPATH = $(shell go env GOPATH)
-GOTAGS = -tags "$(NODE_ENV) $(DB_ENGINE)"
-
 .DEFAULT_GOAL := $(NAME)
 
 # Build
 $(NAME): sql public/main.js public/main.css
-	CGO_ENABLED=0 go build $(GOTAGS) $(LDFLAGS) -trimpath -o $(NAME) .
+	CGO_ENABLED=0 go build $(GOTAGS) $(LDFLAGS) -trimpath -o $(NAME)
 
 node_modules/tailwindcss/package.json node_modules/htmx.org/package.json:
 	npm install
@@ -42,7 +40,7 @@ sql: $(GOPATH)/bin/sqlc
 
 .PHONY: clean
 clean:
-	rm -rf tmp/ node_modules/ public/main.css public/main.js $(NAME) $(NAME)-$(NODE_ENV).db
+	rm -rf tmp/ node_modules/ public/main.css public/main.js $(NAME) $(NAME)-$(ENV).db
 
 # Migrations
 .PHONY: mig-create
@@ -57,35 +55,35 @@ mig-create-table: $(GOPATH)/bin/migrate
 
 .PHONY: mig-up
 mig-up: $(GOPATH)/bin/migrate
-	migrate -database $(DB) -path $(DB_MIGRATIONS) -verbose up
+	migrate -database $(DB_STRING) -path $(DB_MIGRATIONS) -verbose up
 
 .PHONY: mig-down
 mig-down: $(GOPATH)/bin/migrate
-	migrate -database $(DB) -path $(DB_MIGRATIONS) -verbose down 1
+	migrate -database $(DB_STRING) -path $(DB_MIGRATIONS) -verbose down 1
 
 .PHONY: mig-down-all
 mig-down-all: $(GOPATH)/bin/migrate
-	migrate -database $(DB) -path $(DB_MIGRATIONS) -verbose down -all
+	migrate -database $(DB_STRING) -path $(DB_MIGRATIONS) -verbose down -all
 
 .PHONY: mig-drop
 mig-drop: $(GOPATH)/bin/migrate
-	migrate -database $(DB) -path $(DB_MIGRATIONS) -verbose drop -f
+	migrate -database $(DB_STRING) -path $(DB_MIGRATIONS) -verbose drop -f
 
 .PHONY: mig-force
 mig-force: $(GOPATH)/bin/migrate
 	@ read -p "Force set to version: " V; \
-	migrate -database $(DB) -path $(DB_MIGRATIONS) -verbose force $$V
+	migrate -database $(DB_STRING) -path $(DB_MIGRATIONS) -verbose force $$V
 
 .PHONY: mig-goto
 mig-goto: $(GOPATH)/bin/migrate
 	@ read -p "Migrate to version: " V; \
-	migrate -database $(DB) -path $(DB_MIGRATIONS) -verbose force $$V
+	migrate -database $(DB_STRING) -path $(DB_MIGRATIONS) -verbose force $$V
 
 # Development
 .PHONY: dev
 dev:
 	@ echo "Run dev/watch processes on http://127.0.0.1:7331/, 'Ctrl+C' or 'killall make' to cancel"
-	DB_STRING=$(DB_STRING) make -j6 dev-templ dev-sqlc dev-go dev-js dev-css dev-reload
+	make -j6 dev-templ dev-sqlc dev-go dev-js dev-css dev-reload
 
 .PHONY: dev-sqlc
 dev-sqlc: $(GOPATH)/bin/sqlc $(GOPATH)/bin/air
@@ -102,12 +100,12 @@ dev-sqlc: $(GOPATH)/bin/sqlc $(GOPATH)/bin/air
 dev-go: $(GOPATH)/bin/air
 	@ echo "-- Watch Go Binary" 
 	air \
-  --build.cmd "go build -tags \"dev $(DB_ENGINE)\" -o ./tmp/main ." \
-  --build.full_bin "DB_STRING=$(DB_STRING) ./tmp/main" \
+  --build.cmd "go build -tags \"$(ENV) $(DB_ENGINE)\" -o ./tmp/main ." \
+	--build.bin "ENV=$(ENV) DB_STRING=$(DB_STRING) ./tmp/main" \
   --build.delay "100" \
   --build.exclude_regex "_test\\.go" \
   --build.include_dir ".,database,handlers,views,server" \
-  --build.include_ext "go" \
+  --build.include_ext "go" 
 
 .PHONY: dev-css
 dev-css: node_modules/tailwindcss/package.json

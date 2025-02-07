@@ -2,10 +2,9 @@ x-mysql: &mysql
   DB_STRING: "mysql://admin:admin@tcp(mysql:3306)/goth"
 
 x-postgres: &postgres
-  DB_STRING: "postgres://admin:admin@postgres:5432/goth?sslmode=disable"
+  DB_STRING: "postgresql://admin:admin@postgres:5432/goth?sslmode=disable"
 
 x-goth: &goth
-  build: .
   pid: "host" # Prefork enabled requires PID != 1
   environment:
   ports:
@@ -13,53 +12,59 @@ x-goth: &goth
 
 x-migrate: &migrate
   image: migrate/migrate:latest
-  command:
-    - "-database" 
-    - "$$DB_STRING"
-    - "-path"
-    - "/data/db/postgres/migrations/"
-    - "-verbose"
-    - "up"
   volumes:
-    - ".:/data"
+    - ".:/data:ro"
 
 services:
-  goth-mysql:
-    <<: *goth
-    environment:
-      <<: *mysql
-    ports:
-      - "3001:3000"
-
-  mysql:
-    image: mariadb:latest
-    restart: unless-stopped
-    environment:
-      MARIADB_RANDOM_ROOT_PASSWORD: true
-      MYSQL_USER: admin
-      MYSQL_PASSWORD: admin
-      MYSQL_DATABASE: goth
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      start_period: 10s
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    ports:
-      - "3306:3306"
-    volumes:
-      - ./tmp/mariadb:/var/lib/mysql
-
-  migrate-mysql:
-    depends_on:
-      mysql:
-        condition: service_healthy
-    <<: *migrate
-    environment:
-      <<: *mysql
+  # goth-mysql:
+  #   <<: *goth
+  #   build:
+  #     context: .
+  #     args:
+  #       DB_ENGINE: "mysql"
+  #   environment:
+  #     <<: *mysql
+  #   ports:
+  #     - "3001:3000"
+  #
+  # mysql:
+  #   image: mariadb:latest
+  #   restart: unless-stopped
+  #   environment:
+  #     MARIADB_RANDOM_ROOT_PASSWORD: true
+  #     MYSQL_USER: admin
+  #     MYSQL_PASSWORD: admin
+  #     MYSQL_DATABASE: goth
+  #   healthcheck:
+  #     test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+  #     start_period: 10s
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 3
+  #   ports:
+  #     - "3306:3306"
+  #   volumes:
+  #     - ./tmp/mariadb:/var/lib/mysql
+  #
+  # migrate-mysql:
+  #   <<: *migrate
+  #   entrypoint:
+  #     - "/bin/sh"
+  #     - "-c"
+  #     - "migrate -database $$DB_STRING -path $$MIG_PATH -verbose up "
+  #   environment:
+  #     <<: *mysql
+  #     MIG_PATH: "/data/database/mysql/migrations/"
+  #   depends_on:
+  #     postgres:
+  #       condition: service_healthy
 
   goth-postgres:
     <<: *goth
+    build:
+      context: .
+      args:
+        DB_ENGINE: "postgresql"
     environment:
       <<: *postgres
     ports:
@@ -69,7 +74,7 @@ services:
     image: postgres:latest
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready"]
+      test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -83,12 +88,17 @@ services:
       - ./tmp/postgres-data:/var/lib/postgresql/data
 
   migrate-postgres:
+    <<: *migrate
+    entrypoint:
+      - "/bin/sh"
+      - "-c"
+      - "migrate -database $$DB_STRING -path $$MIG_PATH -verbose up "
+    environment:
+      <<: *postgres
+      MIG_PATH: "/data/database/postgresql/migrations/"
     depends_on:
       postgres:
         condition: service_healthy
-    <<: *migrate
-    environment:
-      <<: *postgres
 
   adminer:
     image: adminer:latest
@@ -113,6 +123,3 @@ services:
         /usr/local/bin/entrypoint.sh php -S 0.0.0.0:8080 -t /var/www/html
     ports:
       - "8800:8080"
-
-
-

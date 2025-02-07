@@ -1,6 +1,7 @@
 .env
 bin
 gothbin*
+node_modules/
 public/main.css
 public/main.js
 tmp/
