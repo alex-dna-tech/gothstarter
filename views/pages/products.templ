@@ -1,0 +1,24 @@
+package pages
+
+import (
+	"alex-dna-tech/goth/views/layouts"
+	"strconv"
+)
+
+templ Products(title string, data any) {
+	@layouts.Page(title) {
+		<hr/>
+		{ debug(data) }
+	}
+}
+
+// products = [{ProductName:Uncle Bob's Organic Dried Pears CategoryName:Produce SupplierName:Grandma Kelly's Homestead Unit:{String:12 - 1 lb pkgs. Valid:true} Price:{Float64:30 Valid:true}}]
+templ ProductsRow(name, category, supplier, unit string, price float64) {
+	<tr>
+		<td>{ name }</td>
+		<td>{ category }</td>
+		<td>{ supplier }</td>
+		<td>{ unit }</td>
+		<td>{ strconv.FormatFloat(price,'f',-1,64) }</td>
+	</tr>
+}

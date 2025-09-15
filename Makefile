@@ -89,23 +89,23 @@ dev:
 dev-sqlc: $(GOPATH)/bin/sqlc $(GOPATH)/bin/air
 	@ echo "-- Watch SQLC"
 	air \
-  --build.cmd "sqlc generate" \
-  --build.bin "true" \
-  --build.delay "100" \
+	--build.cmd "sqlc generate" \
+	--build.bin "true" \
+	--build.delay "100" \
 	--build.include_dir ".,database"\
-  --build.include_ext "sql" \
+	--build.include_ext "sql" \
 	--build.include_file "sqlc.yml"
 
 .PHONY: dev-go
 dev-go: $(GOPATH)/bin/air
 	@ echo "-- Watch Go Binary" 
 	air \
-  --build.cmd "go build -tags \"$(ENV) $(DB_ENGINE)\" -o ./tmp/main ." \
+	--build.cmd "go build -tags \"$(ENV) $(DB_ENGINE)\" -o ./tmp/main ." \
 	--build.bin "ENV=$(ENV) DB_STRING=$(DB_STRING) ./tmp/main" \
-  --build.delay "100" \
-  --build.exclude_regex "_test\\.go" \
-  --build.include_dir ".,database,handlers,views,server" \
-  --build.include_ext "go" 
+	--build.delay "100" \
+	--build.exclude_regex "_test\\.go" \
+	--build.include_dir ".,database,handlers,views,server" \
+	--build.include_ext "go" 
 
 .PHONY: dev-css
 dev-css: node_modules/tailwindcss/package.json
@@ -126,11 +126,11 @@ dev-templ: $(GOPATH)/bin/templ
 dev-reload: $(GOPATH)/bin/air
 	@ echo "-- Watch public folder and reload on change"
 	air \
-  --build.cmd "sleep .5 && templ generate --notify-proxy" \
-  --build.bin "true" \
-  --build.delay "100" \
-  --build.include_dir ".,server,public" \
-  --build.include_ext "go,js,css,svg,webp,png,jpg,ico,woff,woff2"
+	--build.cmd "sleep .5 && templ generate --notify-proxy" \
+	--build.bin "true" \
+	--build.delay "100" \
+	--build.include_dir ".,server,public" \
+	--build.include_ext "go,js,css,svg,webp,png,jpg,ico,woff,woff2"
 
 # Test
 .PHONY: tidy
@@ -172,4 +172,3 @@ $(GOPATH)/bin/migrate:
 upgrade-dep:
 	rm $(GOPATH)/bin/{golangci-lint,sqlc,air,templ,esbuild,migrate} 
 	make $(GOPATH)/bin/{golangci-lint,sqlc,air,templ,esbuild,migrate} 
-

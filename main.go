@@ -9,13 +9,13 @@ import (
 	"syscall"
 	"time"
 
-	"alex-dna-tech/goth/server"
+	"alex-dna-tech/goth/internal/api"
 )
 
 func main() {
 	// Start Fiber Server
 	conf := initConf()
-	server := server.New(conf, staticFS)
+	server := api.New(conf, staticFS)
 	server.RegisterCORS()
 	server.RegisterRoutes()
 
@@ -42,7 +42,7 @@ func main() {
 	log.Println("Graceful shutdown complete.")
 }
 
-func gracefulShutdown(fiberServer *server.FiberServer, done chan bool) {
+func gracefulShutdown(fiberServer *api.FiberServer, done chan bool) {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 

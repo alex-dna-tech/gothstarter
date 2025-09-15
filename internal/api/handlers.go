@@ -1,5 +1,4 @@
-// Package handlers provides ...
-package handlers
+package api
 
 import (
 	"strings"

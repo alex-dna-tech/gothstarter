@@ -1,5 +1,5 @@
 // Package server provides ...
-package server
+package api
 
 import (
 	"database/sql"
@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 
 	repo "alex-dna-tech/goth/database"
 )
@@ -47,4 +48,16 @@ func (s *FiberServer) Mount(m ...func(*fiber.App)) {
 	for _, f := range m {
 		f(s.App)
 	}
+}
+
+// Apply CORS middleware
+func (s *FiberServer) RegisterCORS() {
+	s.Use(cors.New(cors.Config{
+		AllowOrigins:     "*",
+		AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS,PATCH",
+		AllowHeaders:     "Accept,Authorization,Content-Type",
+		AllowCredentials: false, // credentials require explicit origins
+		MaxAge:           300,
+	}))
+
 }

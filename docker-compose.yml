@@ -1,8 +1,13 @@
+x-sqlite3: &sqlite3
+  DB_STRING: "sqlite3://data/gothbin-docker-dev.db"
+
 x-mysql: &mysql
   DB_STRING: "mysql://admin:admin@tcp(mysql:3306)/goth"
+  MIG_PATH: "/data/database/sqlite3/migrations/"
 
 x-postgres: &postgres
   DB_STRING: "postgresql://admin:admin@postgres:5432/goth?sslmode=disable"
+  MIG_PATH: "/data/database/postgresql/migrations/"
 
 x-goth: &goth
   pid: "host" # Prefork enabled requires PID != 1
@@ -13,9 +18,29 @@ x-goth: &goth
 x-migrate: &migrate
   image: migrate/migrate:latest
   volumes:
-    - ".:/data:ro"
+    - ".:/data"
 
 services:
+  goth-sqlite3:
+    <<: *goth
+    build:
+      context: .
+      args:
+        DB_ENGINE: "sqlite3"
+    environment:
+      <<: *sqlite3
+    ports:
+      - "3001:3000"
+
+  migrate-sqlite3:
+    <<: *migrate
+    entrypoint:
+      - "/bin/sh"
+      - "-c"
+      - "migrate -database $$DB_STRING -path $$MIG_PATH -verbose up "
+    environment:
+      <<: *sqlite3
+
   # goth-mysql:
   #   <<: *goth
   #   build:
@@ -25,7 +50,7 @@ services:
   #   environment:
   #     <<: *mysql
   #   ports:
-  #     - "3001:3000"
+  #     - "3002:3000"
   #
   # mysql:
   #   image: mariadb:latest
@@ -68,7 +93,7 @@ services:
     environment:
       <<: *postgres
     ports:
-      - "3002:3000"
+      - "3003:3000"
 
   postgres:
     image: postgres:latest
@@ -95,7 +120,6 @@ services:
       - "migrate -database $$DB_STRING -path $$MIG_PATH -verbose up "
     environment:
       <<: *postgres
-      MIG_PATH: "/data/database/postgresql/migrations/"
     depends_on:
       postgres:
         condition: service_healthy

@@ -30,7 +30,7 @@ type Customer struct {
 type Employee struct {
 	LastName   string
 	FirstName  string
-	Birthdate  time.Time
+	BirthDate  time.Time
 	Photo      sql.NullString
 	Notes      sql.NullString
 	EmployeeID int64
@@ -39,13 +39,13 @@ type Employee struct {
 type Order struct {
 	CustomerID sql.NullInt64
 	EmployeeID sql.NullInt64
-	Orderdate  sql.NullTime
+	OrderDate  sql.NullTime
 	ShipperID  sql.NullInt64
 	OrderID    int64
 }
 
 type OrderDetail struct {
-	OrderdetailID int64
+	OrderDetailID int64
 	OrderID       sql.NullInt64
 	ProductID     sql.NullInt64
 	Quantity      sql.NullInt64
